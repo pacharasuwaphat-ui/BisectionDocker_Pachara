@@ -1,0 +1,60 @@
+// ทำการ import http เข้ามาเพื่อทำการ run server
+const express = require('express')
+const bodyParser = require('body-parser')
+const app = express();
+const cors = require('cors')
+const mysql = require('mysql2/promise')
+
+app.use(bodyParser.json())
+app.use(cors({
+    origin: 'http://localhost:5173'
+}));
+
+
+// กำหนด host และ port เริ่มต้น
+const port = 8000
+
+// path = GET /users สำหรับ get users ทั้งหมดที่บันทึกเข้าไปออกมา
+app.get('/Bisection' , async (req,res) =>{
+    console.log('GET Complete')
+    const results = await conn.query('SELECT * FROM bisectionproblems')
+    res.json(results[0])
+})
+
+// path = POST /Bisection สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
+app.post('/Bisection' , async(req,res) =>{
+    try{
+        let data = req.body
+        
+            const results = await conn.query('INSERT INTO bisectionproblems SET ?', data)
+            res.json({
+                message : 'insert ok',
+                data : results[0]
+            })  
+        
+    }
+    catch(error){
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
+})
+
+
+// function ดึงข้อมูลจาก DataBase
+const initMySQL = async () =>{
+    conn = await mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: 'tutorial',
+        port: 8889
+    })
+}
+
+// ทำการ run server
+app.listen( port, async (req,res) => {
+    await initMySQL()
+    console.log('http server run at' + port)
+})

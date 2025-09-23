@@ -1,0 +1,45 @@
+
+h1{
+  font-size: 70px;
+  color : black;
+
+}
+
+.EquationBox{
+  display: flex;
+  margin-top : 150px;
+  flex-direction: column; /* จัด input กับข้อความให้อยู่บนล่าง */
+  justify-content: center; /* จัดกลางแนวตั้ง */
+  align-items: center; /* จัดกลางแนวนอน */
+  button{
+      margin-top: 20px;
+  }
+}
+
+.EquationInput{
+  height: 50px;
+  width: 400px;
+  font: 20px center;
+}
+
+.X{
+  height: 50px;
+  width: 80px;
+  margin-left: 20px;
+  font: 20px center;
+  text-align: center;
+}
+
+button{
+  border: blue outset  3px ;
+  border-radius: 15px;
+  background-color: blue;
+  width: 80px;
+  height: 40px;
+  color: aliceblue;
+}
+
+.oldSelect{
+  font-size: 20px;
+  margin-top:10px ;
+}

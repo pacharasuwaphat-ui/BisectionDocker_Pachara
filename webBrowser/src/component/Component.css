@@ -1,0 +1,16 @@
+.Firstcolumn{
+  width: 60px;
+  border: 1px ridge black;
+}
+
+.anotherColumn{
+  width: 150px;
+  border: 1px ridge black ;
+}
+
+table {
+  margin-top: 20px;
+  border: 1px ridge black ;
+  
+  text-align: center;        
+}
