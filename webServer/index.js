@@ -10,6 +10,33 @@ app.use(cors({
     origin: 'http://localhost:5173'
 }));
 
+let conn = null
+
+// function ดึงข้อมูลจาก DataBase
+const initMySQL = async () => {
+  try {
+    conn = await mysql.createConnection({
+      host: 'db',
+      user: 'root',
+      password: 'root',
+      database: 'Bisection',
+      port: 3306
+    });
+    console.log("✅ MySQL connected");
+
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS bisectionproblems(
+            equation varchar(255) PRIMARY KEY,
+            xr float,
+            xl float,
+            error float
+        )
+    `);
+    console.log("✅ Table 'bisectionproblems' ensured");
+  } catch(err) {
+    console.error("❌ Cannot init MySQL or create table:", err.message);
+  }
+};
 
 // กำหนด host และ port เริ่มต้น
 const port = 8000
@@ -42,16 +69,6 @@ app.post('/Bisection' , async(req,res) =>{
 })
 
 
-// function ดึงข้อมูลจาก DataBase
-const initMySQL = async () =>{
-    conn = await mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'tutorial',
-        port: 8889
-    })
-}
 
 // ทำการ run server
 app.listen( port, async (req,res) => {

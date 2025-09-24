@@ -4,18 +4,28 @@ import { useState } from "react";
 
 function Graph({ Equation, Iterations }) {
 
-  // สร้างค่า x และ y สำหรับกราฟ
+  function safeEvaluate(expr, scope) {
+  try {
+    return evaluate(expr, scope);
+  } catch (err) {
+    // console.log("Invalid equation:", expr);
+    return NaN; // หรือ 0, null ตามต้องการ
+  }
+}
+
+  
+    // สร้างค่า x และ y สำหรับกราฟ
   let xValues = [];
   let yValues = [];
   for (let x = -100; x <= 100; x += 0.1) {
     xValues.push(x);
-    yValues.push(evaluate(Equation, { x }));
+    yValues.push(safeEvaluate(Equation, { x }));
   }
 
   // จุดจาก iteration (xm แต่ละรอบ)
   const xmPoints = Iterations.map(item => item.xm);
-  const xmValues = xmPoints.map(x => evaluate(Equation, { x }));
-
+  const xmValues = xmPoints.map(x => safeEvaluate(Equation, { x }));
+  
   return (
     <Plot
       data={[

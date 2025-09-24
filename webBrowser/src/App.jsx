@@ -82,7 +82,10 @@ function App() {
   }
 
   function Calculation(){
-    if(Equation === "" || XL === "" || XR === "")  return;
+    if(Equation === "" || XL === "" || XR === "" || Er === "")  {
+      alert("ท่านสุภาพบุรุษ/สุภาพสตรีอาจจะมีครรภ์หรือไม่มีก็แล้วแต่ แต่ท่านกรอกข้อมูลไม่ครบนะไอหนู");
+      return;
+    }
     let xl = parseFloat(XL);
     let xr = parseFloat(XR);
     let xm = (xl+xr)/2;
@@ -200,11 +203,11 @@ function App() {
         </div>
         )}
         {/* Table of root */}
-      {Iterations.length > 0 && (
+      {Iterations.length > 0 && Equation && (
         <Table Iterations ={Iterations}></Table>
       )}
 
-      {Iterations.length > 0 && (
+      {Iterations.length > 0 && Equation && (
         <Graph Equation={Equation} Iterations={Iterations} />
       )}
 
