@@ -12,5 +12,7 @@ table {
   margin-top: 20px;
   border: 1px ridge black ;
   
-  text-align: center;        
+  text-align: center;       
+  
+  margin-bottom: 100px;
 }
