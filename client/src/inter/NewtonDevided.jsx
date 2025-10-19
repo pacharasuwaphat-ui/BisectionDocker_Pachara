@@ -8,6 +8,9 @@ import Graph from '../component/Graph';
 
 
 function NewtonDivided() {
+
+  const [value, setValue] = useState("");
+
   const [numPoints, setNumPoints] = useState(3);
   const [xValue, setXValue] = useState(0);
   const [points, setPoints] = useState([
@@ -19,6 +22,63 @@ function NewtonDivided() {
   const [CI, setC] = useState([]);
   const [answer, setAns] = useState(0);
   const [HaveCal, setCal] = useState(false);
+  const [Old, setOld] = useState([]);
+
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(true);
+  
+  function fetchDatabase(){
+    // fetch คือขอ data จาก server ( เรียก GET)
+    fetch('http://localhost:8000/newtondivided')
+    .then((response) =>{
+      return response.json()
+    })
+    .then((responseData) =>{
+      setOld(responseData)
+    })
+  }
+
+  const PushDataBase = async() =>{
+    try{
+      const data = {
+        x : xValue,
+        method : "newton",
+        n : numPoints,
+        points : points.map(p => ({ xi: p.x, fx: p.fx }))
+      }
+      console.log('submit data', data)
+      const response = await axios.post('http://localhost:8000/inter', data)
+      console.log('response' , response.data)
+
+    }catch(error){
+      if(error.response){
+        console.log(error.response.data.message)
+      }
+    }
+  }
+
+  function Cancel() {
+    setShowOld(false);
+    setShowNew(true);
+  }
+
+  function getOldProblem() {
+    setShowOld(true);
+    setShowNew(false);
+    fetchDatabase()
+  }
+
+  function Oldcal(e) {
+    e.preventDefault();
+    const selected = Old.find(item => item.id === Number(value));
+    if (selected) {
+      setNumPoints(selected.n);
+      setXValue(selected.x);
+      setPoints(selected.point.map(p => ({ x: p.xi, fx: p.fx })));
+    }
+
+    Cancel();
+  }
 
   // เพิ่มหรือลดจำนวนจุด
   const updateNumPoints = (delta) => {
@@ -50,6 +110,10 @@ function NewtonDivided() {
   }
 
   const handleCalculate = () => {
+    if (!xValue || points.some(p => p.x === '' || p.fx === '')) {
+      alert("⚠️ นายท่านครับ ได้โปรด กรอก ข้อ มูล ให้ ครบ ก่อน นะ ครับ");
+      return;
+    }
     // console.log('X value:', xValue);
     // console.log('Points:', points);
     let x = parseFloat(xValue)
@@ -93,6 +157,7 @@ function NewtonDivided() {
     setAns(result);
     setC(data) 
     setCal(true)
+    PushDataBase()
 
   };
 
@@ -104,6 +169,8 @@ function NewtonDivided() {
         <h1>
             Newton Divided Different
         </h1>
+
+        {showNew && (
          <div className="ndd-container">
           <div className="ndd-controls">
             <span className="ndd-label">Number of points</span>
@@ -124,7 +191,7 @@ function NewtonDivided() {
               />
             </div>
 
-            <button className="btn btn-calc" onClick={handleCalculate}>Get Old</button>
+            <button className="btn btn-calc" onClick={getOldProblem}>Get Old</button>
             <button className="btn btn-calc" onClick={handleCalculate}>Calculate!</button>
           </div>
 
@@ -148,6 +215,41 @@ function NewtonDivided() {
             ))}
           </div>
         </div>
+        )}
+
+          {showOld && (
+            <div>
+              <div className='Textinput'>
+                  <form onSubmit={Oldcal}>
+                  {Old.map((items, index) => (
+                      <center  key={index} className='oldSelect'>
+                      <label>
+                      <input className='oldSelect'
+                          type="radio"
+                          value={items.id}
+                          checked={value === items.id}
+                          onChange={(e) => setValue(Number(e.target.value))}
+                      />
+                      {" X = " + items.x + ", Num_of_point = " + items.n + ", Point -> " }
+                      {items.point.map((p, i) => (
+                        <span key={i}>
+                          {"X" + i +" = (" + p.xi + ", " + p.fx + ") , "}
+                        </span>
+                      ))}
+                      </label>
+                      </center>
+                  ))}
+                  
+                  <center>
+                      <button type="submit">Select</button>
+                  </center>
+                  </form>
+              </div>
+              <center>
+                  <button onClick={Cancel}>Cancel</button>
+              </center>
+            </div>
+          )}
 
         {HaveCal && (
         <h2>

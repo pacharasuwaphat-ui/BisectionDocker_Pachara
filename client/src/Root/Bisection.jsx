@@ -211,6 +211,7 @@ function Bisection() {
             </center>
             </div>
             )}
+            
             {/* Table of root */}
         {Iterations.length > 0 && Equation && (
             <Table Iterations ={Iterations}></Table>
