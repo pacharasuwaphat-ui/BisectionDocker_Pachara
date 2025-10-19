@@ -14,6 +14,7 @@ function Graphical() {
   const [XR, setXR] = useState("");
   const [Er, seteR] = useState("");
   const [Iterations, setIterations] = useState([]);
+  const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
@@ -90,6 +91,7 @@ function Graphical() {
     let xmo = xm;
     let change = 1.0;
     let data = [];
+    let point = []
     let iteration = 1;
 
     for(xm = xl+change; xm <= xr;xm += change){
@@ -107,6 +109,10 @@ function Graphical() {
         X: xm,
         error:Error
       });
+      point.push({
+        x: xm,
+        fx: Fx(xm)
+      });
       iteration++;
       if(Fx(xm)*Fx(xmo) < 0){
         xr = xm;
@@ -117,8 +123,12 @@ function Graphical() {
       }
       xmo = xm;
     }
-    setIterations(data);
-    PushDataBase();
+
+    point.sort((a, b) => a.x - b.x);
+    setIterations(data)
+    setpoint(point)
+    PushDataBase()
+
   }
 
       
@@ -204,8 +214,8 @@ function Graphical() {
             <Table Iterations ={Iterations}></Table>
         )}
 
-        {Iterations.length > 0 && Equation && (
-            <Graph Equation={Equation} Iterations={Iterations} />
+        {plotgraph.length > 0 && Equation && (
+            <Graph  Points={plotgraph} />
         )}
 
         </div>

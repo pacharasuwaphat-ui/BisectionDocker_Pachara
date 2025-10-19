@@ -14,6 +14,7 @@ function Secant() {
   const [X1, setX1] = useState("");
   const [Er, seteR] = useState("");
   const [Iterations, setIterations] = useState([]);
+  const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
@@ -90,6 +91,7 @@ function Secant() {
     let x2;
     let Error;
     let data = [];
+    let point = [];
     let iteration = 1;
     
      // วนคำนวณตามสูตร Secant: x_{i+1} = x_i - f(x_i) * (x_i - x_{i-1}) / (f(x_i) - f(x_{i-1}))
@@ -112,7 +114,10 @@ function Secant() {
         fx0: fx0,
         error: Error
       });
-
+      point.push({
+        x: x0,
+        fx: fx0
+      });
       // เตรียมค่ารอบถัดไป
       iteration++;
       x0 = x1;
@@ -120,8 +125,11 @@ function Secant() {
 
     } while (Error > Er && iteration <= 100); // จำกัดสูงสุด 100 รอบ ป้องกันลูปไม่จบ
 
+    point.sort((a, b) => a.x - b.x);
     setIterations(data)
+    setpoint(point)
     PushDataBase()
+
 
   }
       
@@ -210,7 +218,7 @@ function Secant() {
         )}
 
         {Iterations.length > 0 && Equation && (
-            <Graph Equation={Equation} Iterations={Iterations} />
+            <Graph  Points={plotgraph} />
         )}
 
         </div>

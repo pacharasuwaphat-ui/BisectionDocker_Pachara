@@ -1,31 +1,11 @@
-import Plot from 'react-plotly.js';
-import { evaluate } from "mathjs";
-import { useState } from "react";
+import Plot from "react-plotly.js";
 
-function Graph({ Equation, Iterations }) {
+function Graph({ Points = [], title = "Graph" }) {
+  if (!Points || Points.length === 0) return null;
 
-  function safeEvaluate(expr, scope) {
-  try {
-    return evaluate(expr, scope);
-  } catch (err) {
-    // console.log("Invalid equation:", expr);
-    return NaN; // หรือ 0, null ตามต้องการ
-  }
-}
+  const xValues = Points.map(p => p.x);
+  const yValues = Points.map(p => p.fx);
 
-  
-    // สร้างค่า x และ y สำหรับกราฟ
-  let xValues = [];
-  let yValues = [];
-  for (let x = -100; x <= 100; x += 0.1) {
-    xValues.push(x);
-    yValues.push(safeEvaluate(Equation, { x }));
-  }
-
-  // จุดจาก iteration (xm แต่ละรอบ)
-  const xmPoints = Iterations.map(item => item.xm);
-  const xmValues = xmPoints.map(x => safeEvaluate(Equation, { x }));
-  
   return (
     <Plot
       data={[
@@ -33,29 +13,33 @@ function Graph({ Equation, Iterations }) {
           x: xValues,
           y: yValues,
           type: "scatter",
-          mode: "lines",
-          name: "f(x)"
-        },
-        {
-          x: xmPoints,
-          y: xmValues,
-          type: "scatter",
-          mode: "markers+text",
-          name: "Iterations",
+          mode: "markers+lines",
+          name: "Data Points",
+          line: { color: "green" },
           marker: { color: "red", size: 8 },
-          text: Iterations.map(i => `i=${i.iteration}`),
-          textposition: "top center"
-        }
+        },
       ]}
       layout={{
-        width: 1400,
-        height: 1000,
-        title: `Graph of f(x) = ${Equation}`,
-        // xaxis: { title: "x" ,range:[-10000,10000]},
-        // yaxis: { title: "f(x)",range:[-5000,5000] }
-        xaxis: { title: "x" },
-        yaxis: { title: "f(x)"}
+        width: 1200,
+        height: 700,
+        title: { text: title, font: { size: 20 } },
+        xaxis: {
+          title: "x",
+          zeroline: true,
+          showgrid: true,
+          gridcolor: "#eee",
+        },
+        yaxis: {
+          title: "f(x)",
+          zeroline: true,
+          showgrid: true,
+          gridcolor: "#eee",
+        },
+        plot_bgcolor: "#fff",
+        paper_bgcolor: "#f9fbfd",
+        margin: { l: 60, r: 40, t: 60, b: 60 },
       }}
+      config={{ displayModeBar: false }}
     />
   );
 }

@@ -13,6 +13,7 @@ function NewtonRaphson() {
   const [X0, setX0] = useState("");
   const [Er, seteR] = useState("");
   const [Iterations, setIterations] = useState([]);
+  const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
@@ -91,6 +92,7 @@ function NewtonRaphson() {
     let x1 ;
     let Error;
     let data = [];
+    let point = [];
     let iteration = 1;
     do {
     const fx0 = Fx(x0);
@@ -111,14 +113,20 @@ function NewtonRaphson() {
       fx: fx0,
       error: Error
     });
-
+    point.push({
+      x: x0,
+      fx: fx0
+    });
     iteration++;
     x0 = x1;
   } while (Error > Er && iteration <= 100); // จำกัดไม่เกิน 100 รอบเพื่อกันลูปไม่จบ
     
 
+    point.sort((a, b) => a.x - b.x);
     setIterations(data)
+    setpoint(point)
     PushDataBase()
+
 
   }
       
@@ -200,7 +208,7 @@ function NewtonRaphson() {
         )}
 
         {Iterations.length > 0 && Equation && (
-            <Graph Equation={Equation} Iterations={Iterations} />
+            <Graph  Points={plotgraph} />
         )}
 
         </div>

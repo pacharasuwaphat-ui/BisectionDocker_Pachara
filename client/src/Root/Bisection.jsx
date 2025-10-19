@@ -18,6 +18,7 @@ function Bisection() {
   const [XR, setXR] = useState("");
   const [Er, seteR] = useState("");
   const [Iterations, setIterations] = useState([]);
+  const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
@@ -92,6 +93,7 @@ function Bisection() {
     let Error;
     let xmo;
     let data = [];
+    let point = [];
     let iteration = 1;
     if(Fx(xm)*Fx(xr) > 0){
       xr = xm;
@@ -117,11 +119,17 @@ function Bisection() {
         xm: xm,
         error: Error
       });
+      point.push({
+        x: xm,
+        fx: Fx(xm)
+      });
       iteration++;
 
     }while(Error > Er);
 
+    point.sort((a, b) => a.x - b.x);
     setIterations(data)
+    setpoint(point)
     PushDataBase()
 
   }
@@ -209,7 +217,7 @@ function Bisection() {
         )}
 
         {Iterations.length > 0 && Equation && (
-            <Graph Equation={Equation} Iterations={Iterations} />
+            <Graph Points={plotgraph} />
         )}
 
         </div>

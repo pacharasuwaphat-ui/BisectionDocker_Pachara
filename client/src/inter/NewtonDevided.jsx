@@ -3,6 +3,7 @@ import axios from "axios";
 import Nav from './Menu'
 import './UI.css'
 import Table from '../component/TableIteration';
+import Graph from '../component/Graph';
 
 
 
@@ -14,6 +15,7 @@ function NewtonDivided() {
     { x: '', fx: '' },
     { x: '', fx: '' },
   ]);
+  const [plotgraph,setplot] = useState([]);
   const [CI, setC] = useState([]);
   const [answer, setAns] = useState(0);
   const [HaveCal, setCal] = useState(false);
@@ -53,6 +55,7 @@ function NewtonDivided() {
     let x = parseFloat(xValue)
     let n = parseInt(numPoints)
     let data = []
+    let point = []
     setAns(0)
 
     dp = Array.from({ length: n }, () => Array(n).fill(-1));
@@ -73,6 +76,10 @@ function NewtonDivided() {
         i: parseInt(i),
         Ci: C[i]
       });
+      point.push({
+        x : initial[i].x,
+        fx : initial[i].fx
+      })
 
       let temp = C[i];
       for (let j = 0; j < i; j++) {
@@ -81,13 +88,13 @@ function NewtonDivided() {
       result += temp; // <--- เก็บผลรวมที่นี่
     }
 
+    point.sort((a, b) => a.x - b.x);
+    setplot(point)
     setAns(result);
     setC(data) 
     setCal(true)
 
   };
-
-
 
   return (
 
@@ -152,6 +159,11 @@ function NewtonDivided() {
         {CI.length > 0 && (
             <Table Iterations ={CI}></Table>
         )}
+
+        {plotgraph.length > 0 && (
+            <Graph Points={plotgraph} />
+        )}
+        
 
       </div>
     </>

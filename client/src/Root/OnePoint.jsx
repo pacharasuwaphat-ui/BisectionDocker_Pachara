@@ -13,6 +13,7 @@ function OnePoint() {
   const [X0, setX0] = useState("");
   const [Er, seteR] = useState("");
   const [Iterations, setIterations] = useState([]);
+  const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
@@ -86,6 +87,7 @@ function OnePoint() {
     let x1 ;
     let Error;
     let data = [];
+    let point = [];
     let iteration = 1;
 
     // ทำการวนลูปคำนวณตามสูตร x_{i+1} = f(x_i)
@@ -98,13 +100,21 @@ function OnePoint() {
       x1: x1,
       error: Error
     });
+    point.push({
+      x: x0,
+      fx: Fx(x0)
+    });
+
     iteration++;
     x0 = x1;                            // เตรียมค่าใหม่สำหรับรอบถัดไป
   } while (Error > Er && iteration < 100); // กันลูปไม่รู้จบ (สูงสุด 100 รอบ)
     
 
+    point.sort((a, b) => a.x - b.x);
     setIterations(data)
+    setpoint(point)
     PushDataBase()
+
 
   }
       
@@ -186,7 +196,7 @@ function OnePoint() {
         )}
 
         {Iterations.length > 0 && Equation && (
-            <Graph Equation={Equation} Iterations={Iterations} />
+            <Graph  Points={plotgraph} />
         )}
 
         </div>
