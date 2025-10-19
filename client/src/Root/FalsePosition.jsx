@@ -22,17 +22,20 @@ function falseposition() {
   
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
-    fetch('http://localhost:8000/FalsePosition')
-    .then((response) =>{
-      return response.json()
-    })
-    .then((responseData) =>{
-      setOld(responseData)
-    })
-  }
-  function Cancel() {
-    setShowOld(false);
-    setShowNew(true);
+    try {
+      fetch('http://localhost:8000/FalsePosition')
+      .then((response) =>{
+        return response.json()
+      })
+      .then((responseData) =>{
+        setOld(responseData)
+      })
+    } catch (error) {
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
   }
 
   function getOldProblem() {

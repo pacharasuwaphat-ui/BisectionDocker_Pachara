@@ -26,13 +26,21 @@ function Bisection() {
   
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
-    fetch('http://localhost:8000/Bisection')
-    .then((response) =>{
-      return response.json()
-    })
-    .then((responseData) =>{
-      setOld(responseData)
-    })
+    try {
+      fetch('http://localhost:8000/Bisection')
+      .then((response) =>{
+        return response.json()
+      })
+      .then((responseData) =>{
+        setOld(responseData)
+      })
+    } catch (error) {
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
+    
   }
   function Cancel() {
     setShowOld(false);
