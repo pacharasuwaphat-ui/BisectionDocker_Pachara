@@ -213,6 +213,48 @@ app.get('/newtondivided' , async (req,res) =>{
     res.json(NewResult)
 })
 
+// path = GET /lagrange
+app.get('/lagrange' , async (req,res) =>{
+    console.log('GET lagrange Complete')
+    const results = await conn.query(`
+        SELECT inter.id  , inter.x ,inter.n , p.point_index , p.xi , p.fx 
+        FROM interpolations inter,interpolation_points p
+        where inter.id = p.interpolation_id AND inter.method = 'lagrange'
+        ORDER BY inter.id, p.point_index
+    `);
+
+    let id = -1;
+    let x = 0;
+    let n = 0;
+    let NewResult = []
+    let point = []
+    for(const r of results[0]){
+        if(id != r.id){
+            id = r.id;
+            x = r.x;
+            n = r.n;
+        }
+
+        point.push({
+            point_index : r.point_index,
+            xi : r.xi,
+            fx : r.fx
+        })
+
+        if(r.point_index == n-1){
+            NewResult.push({
+                id : r.id,
+                x : r.x,
+                n : r.n,
+                point : point
+            })
+            point = []
+        }
+    }
+
+    res.json(NewResult)
+})
+
 // --------------------------POST----------------------------------
 
 // path = POST /Bisection สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
@@ -339,7 +381,7 @@ app.post('/inter' , async(req,res) =>{
         }
         const results = await conn.query('INSERT INTO interpolations SET ?', inter)
         res.json({
-            message : 'insert newtondivded ok',
+            message : 'insert interpolations ok',
             data : results[0]
         })
         for(let i=0;i<data.points.length;i++){
@@ -352,7 +394,7 @@ app.post('/inter' , async(req,res) =>{
             await conn.query('INSERT INTO interpolation_points SET ?', point)
         }
         res.json({
-            message : 'insert newtondivded_point ok',
+            message : 'insert interpolations_point ok',
             data : results[0]
         })
         
