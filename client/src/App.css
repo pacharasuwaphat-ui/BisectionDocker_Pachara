@@ -57,6 +57,20 @@ nav{
   background-color: #333;
   padding: 1rem;
   text-align: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  
+}
+
+h2{
+  margin-bottom: 10px;
+}
+
+.Header-answer{
+  font-size: 35px;
+  margin-bottom: 20px;
   
 }
 
@@ -70,6 +84,7 @@ nav a{
   columns: #fff;
   text-decoration: none;
   margin: 0 1rem;
+  
 }
 
 

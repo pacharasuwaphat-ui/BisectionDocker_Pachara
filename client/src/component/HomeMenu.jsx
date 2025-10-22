@@ -6,6 +6,7 @@ function Menu() {
     <nav>
         <Link to={'/root/Graphical'}>Root_of_Equaiton</Link>
         <Link to={'/inter/newton'}>Interpolation</Link>
+        <Link to={'/integration/single_trapezoidal'}>Integration</Link>
         
     </nav>
   )

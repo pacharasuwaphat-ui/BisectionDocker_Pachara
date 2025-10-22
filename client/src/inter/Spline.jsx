@@ -4,10 +4,13 @@ import Graph from '../component/Graph';
 import Table from '../component/TableIteration'
 import axios from "axios"; 
 import Nav from './Menu'
+import './UI.css'
 
-function Lagrange() {
+function Spline() {
 
   const [value, setValue] = useState("");
+  const [TextAns, setTextAns] = useState("");
+  const [mode, setMode] = useState("Linear");
 
   const [numPoints, setNumPoints] = useState(3);
   const [xValue, setXValue] = useState(0);
@@ -17,7 +20,6 @@ function Lagrange() {
     { x: '', fx: '' },
   ]);
   const [plotgraph,setplot] = useState([]);
-  const [LI, setL] = useState([]);
   const [answer, setAns] = useState(0);
   const [HaveCal, setCal] = useState(false);
   const [Old, setOld] = useState([]);
@@ -28,7 +30,7 @@ function Lagrange() {
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
     try {
-      fetch('http://localhost:8000/lagrange')
+      fetch('http://localhost:8000/spline')
       .then((response) =>{
         return response.json()
       })
@@ -43,24 +45,24 @@ function Lagrange() {
     }
   }
 
-  // const PushDataBase = async() =>{
-  //   try{
-  //     const data = {
-  //       x : xValue,
-  //       method : "lagrange",
-  //       n : numPoints,
-  //       points : points.map(p => ({ xi: p.x, fx: p.fx }))
-  //     }
-  //     console.log('submit data', data)
-  //     const response = await axios.post('http://localhost:8000/inter', data)
-  //     console.log('response' , response.data)
+  const PushDataBase = async() =>{
+    try{
+      const data = {
+        x : xValue,
+        method : "spline",
+        n : numPoints,
+        points : points.map(p => ({ xi: p.x, fx: p.fx }))
+      }
+      console.log('submit data', data)
+      const response = await axios.post('http://localhost:8000/inter', data)
+      console.log('response' , response.data)
 
-  //   }catch(error){
-  //     if(error.response){
-  //       console.log(error.response.data.message)
-  //     }
-  //   }
-  // }
+    }catch(error){
+      if(error.response){
+        console.log(error.response.data.message)
+      }
+    }
+  }
 
   function Cancel() {
     setShowOld(false);
@@ -103,17 +105,37 @@ function Lagrange() {
     setPoints(newPoints);
   };
 
+  // คำนวน LinearSpline
+  const LinearCal = (init , x , n) => {
+    init.sort((a, b) => a.x - b.x)
+    let i = 0
+    for(;i<n;i++)
+        if(init[i].x > x) break;
+    if(i == n){
+        alert("ไม่สามารถหาค่าได้ครับ");
+        return;
+    }   
+    let m = (init[i].fx - init[i-1].fx)/(init[i].x - init[i-1].x)
+    let a = 'f('+ x + ') = '+ init[i-1].fx +' + ' + m +'('+ x + '-' + init[i-1].x + ')'
+    setTextAns(a);
+    let Ans = init[i-1].fx + m*(x-init[i-1].x)
+    setAns(Ans)
+
+  };
+
 const handleCalculate = () => {
   if (!xValue || points.some(p => p.x === '' || p.fx === '')) {
     alert("⚠️ นายท่านครับ ได้โปรด กรอก ข้อ มูล ให้ ครบ ก่อน นะ ครับ");
     return;
   }
+  if (mode == 'Cubic') {
+    alert("⚠️ ขออภัยด้วย ท่านไม่ได้ผิดแต่อย่างใด แต่เราแค่ยังทำไม่เสร็จ");
+    return;
+  }
 
   let x = parseFloat(xValue);
   let n = parseInt(numPoints);
-  let data = [];
   let point = [];
-  let result = 0;
 
   // แปลงข้อมูลจุดให้เป็นตัวเลข
   let initial = points.slice(0, n).map(p => ({
@@ -121,21 +143,8 @@ const handleCalculate = () => {
     fx: parseFloat(p.fx)
   }));
 
-  // คำนวณค่า Lagrange
-  for (let i = 0; i < n; i++) {
-    let Li = 1;
-    for (let j = 0; j < n; j++) {
-      if (i !== j) {
-        Li *= (x - initial[j].x) / (initial[i].x - initial[j].x);
-      }
-    }
-    let term = Li * initial[i].fx;
-    result += term;
-    data.push({
-      i: i + 1,
-      Li: Li,
-      fxLi: term
-    });
+  if(mode == 'Linear'){
+    LinearCal(initial , x , n)
   }
 
   // เตรียมข้อมูลกราฟ
@@ -145,11 +154,10 @@ const handleCalculate = () => {
   }));
 
 
-
   // อัปเดต state ทั้งหมด
   setplot(point);
-  setAns(result);
-  setL(data);
+//   setAns(result);
+//   setL(data);
   setCal(true);
   PushDataBase();
 };
@@ -157,13 +165,36 @@ const handleCalculate = () => {
   return (
 
     <>
-      <Nav current={'lagrange'}></Nav>
+      <Nav current={'spline'}></Nav>
       <div className='EquationBox'>
         <h1>
-            Lagrange
+            Spline
         </h1>
-
+        <div className="spline-header">
+      <div className="spline-tabs">
+        <button
+          className={`spline-tab ${mode === "Linear" ? "active" : ""}`}
+          onClick={() => setMode("Linear")}
+        >
+          Linear
+        </button>
+        <button
+          className={`spline-tab ${mode === "Quadratic" ? "active" : ""}`}
+          onClick={() => setMode("Quadratic")}
+        >
+          Quadratic
+        </button>
+        <button
+          className={`spline-tab ${mode === "Cubic" ? "active" : ""}`}
+          onClick={() => setMode("Cubic")}
+        >
+          Cubic
+        </button>
+      </div>
+    </div>
+        
         {showNew && (
+            
          <div className="ndd-container">
           <div className="ndd-controls">
             <span className="ndd-label">Number of points</span>
@@ -245,15 +276,22 @@ const handleCalculate = () => {
           )}
 
         {HaveCal && (
-        <h2>
-            Fx is {answer}
-        </h2>
+        <div className='ndd-container'>
+            <h2 className='Header-answer'>
+                Solution
+            </h2>
+            <h2>
+                {TextAns}
+            </h2>
+            <h2>
+                Fx is {answer}
+            </h2>
+
+        </div>
+        
         
         )}
         
-        {LI.length > 0 && (
-            <Table Iterations ={LI}></Table>
-        )}
 
         {plotgraph.length > 0 && (
             <Graph Points={plotgraph} />
@@ -265,4 +303,4 @@ const handleCalculate = () => {
   );
 }
 
-export default Lagrange
+export default Spline

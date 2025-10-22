@@ -13,6 +13,12 @@ import Secant from './Root/Secant.jsx'
 
 import NewtonDevided from './inter/NewtonDevided.jsx'
 import Lagrange from './inter/Lagrange.jsx'
+import Spline from './inter/Spline.jsx'
+
+import SingleTrapezoidal from './integration/SingleTrapzoidal.jsx'
+import SingleSimpson from './integration/SingleSimpson.jsx'
+import CompositeTrapezoidal from './integration/CompositeTrapzoidal.jsx'
+import CompositeSimpson from './integration/CompositeSimpson.jsx'
 
 import {
   createBrowserRouter,
@@ -58,6 +64,29 @@ const router = createBrowserRouter([
   {
     path: "/inter/lagrange",
     element: <Lagrange/>,
+  },
+  {
+    path: "/inter/spline",
+    element: <Spline/>,
+  },
+
+// ------------------------ interpolation ---------------------------------
+
+  {
+    path: "/integration/single_trapezoidal",
+    element: <SingleTrapezoidal/>,
+  },
+  {
+    path: "/integration/composite_trapezoidal",
+    element: <CompositeTrapezoidal/>,
+  },
+  {
+    path: "/integration/single_simpson",
+    element: <SingleSimpson/>,
+  },
+  {
+    path: "/integration/composite_simpson",
+    element: <CompositeSimpson/>,
   },
 
 

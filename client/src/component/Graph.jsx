@@ -3,6 +3,8 @@ import Plot from "react-plotly.js";
 function Graph({ Points = [], title = "Graph" }) {
   if (!Points || Points.length === 0) return null;
 
+  Points.sort((a, b) => a.x - b.x);
+
   const xValues = Points.map(p => p.x);
   const yValues = Points.map(p => p.fx);
 

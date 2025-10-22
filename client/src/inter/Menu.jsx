@@ -15,6 +15,7 @@ function Menu({ current }) {
         <Link to="/" >Home</Link>
         <Link to="/inter/newton" className={isCurrent('newton')}>Newton_Devided</Link>
         <Link to="/inter/lagrange" className={isCurrent('lagrange')}>Lagrange</Link>
+        <Link to="/inter/spline" className={isCurrent('spline')}>Spline</Link>
         
         
     </nav>

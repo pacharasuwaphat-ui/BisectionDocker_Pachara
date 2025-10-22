@@ -118,6 +118,31 @@ const initMySQL = async () => {
     `);
     console.log("✅ Table 'interpolation_point' ensured");
 
+    //----------------singleintegration----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS singleintegration(
+            equation varchar(255),
+            x0 float,
+            x1 float,
+            method varchar(255),
+            PRIMARY KEY (equation , x0 , x1 , method)
+        )
+    `);
+    console.log("✅ Table 'singleintegration' ensured");
+
+    //----------------compositeintegration----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS compositeintegration(
+            equation varchar(255),
+            x0 float,
+            x1 float,
+            n int,
+            method varchar(255),
+            PRIMARY KEY (equation , x0 , x1 , n , method)
+        )
+    `);
+    console.log("✅ Table 'compositeintegration' ensured");
+
 
   } catch(err) {
     console.error("❌ Cannot init MySQL or create table:", err.message);
@@ -254,6 +279,77 @@ app.get('/lagrange' , async (req,res) =>{
 
     res.json(NewResult)
 })
+
+// path = GET /spline
+app.get('/spline' , async (req,res) =>{
+    console.log('GET spline Complete')
+    const results = await conn.query(`
+        SELECT inter.id  , inter.x ,inter.n , p.point_index , p.xi , p.fx 
+        FROM interpolations inter,interpolation_points p
+        where inter.id = p.interpolation_id AND inter.method = 'spline'
+        ORDER BY inter.id, p.point_index
+    `);
+
+    let id = -1;
+    let x = 0;
+    let n = 0;
+    let NewResult = []
+    let point = []
+    for(const r of results[0]){
+        if(id != r.id){
+            id = r.id;
+            x = r.x;
+            n = r.n;
+        }
+
+        point.push({
+            point_index : r.point_index,
+            xi : r.xi,
+            fx : r.fx
+        })
+
+        if(r.point_index == n-1){
+            NewResult.push({
+                id : r.id,
+                x : r.x,
+                n : r.n,
+                point : point
+            })
+            point = []
+        }
+    }
+
+    res.json(NewResult)
+})
+
+// path = GET /singletrape
+app.get('/singletrape' , async (req,res) =>{
+    console.log('GET singletrapezoidal Complete')
+    const results = await conn.query('SELECT * FROM singleintegration where method = "trapezoidal"')
+    res.json(results[0])
+})
+
+// path = GET /singlesimpson
+app.get('/singlesimpson' , async (req,res) =>{
+    console.log('GET singlesimpson Complete')
+    const results = await conn.query('SELECT * FROM singleintegration where method = "simpson"')
+    res.json(results[0])
+})
+
+// path = GET /compositetrape
+app.get('/compositetrape' , async (req,res) =>{
+    console.log('GET compositetrapezoidal Complete')
+    const results = await conn.query('SELECT * FROM compositeintegration where method = "trapezoidal"')
+    res.json(results[0])
+})
+
+// path = GET /composiesimpson
+app.get('/compositesimpson' , async (req,res) =>{
+    console.log('GET compositesimpson Complete')
+    const results = await conn.query('SELECT * FROM compositeintegration where method = "simpson"')
+    res.json(results[0])
+})
+
 
 // --------------------------POST----------------------------------
 
@@ -406,6 +502,45 @@ app.post('/inter' , async(req,res) =>{
         })
     }
 })
+
+
+// path = POST /singleintegration 
+app.post('/singleintegration' , async(req,res) =>{
+    try{
+        let data = req.body
+            const results = await conn.query('INSERT INTO singleintegration SET ?', data)
+            res.json({
+                message : 'insert singleintegration ok',
+                data : results[0]
+            })  
+    }
+    catch(error){
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
+})
+
+
+// path = POST /compositeintegration 
+app.post('/compositeintegration' , async(req,res) =>{
+    try{
+        let data = req.body
+            const results = await conn.query('INSERT INTO compositeintegration SET ?', data)
+            res.json({
+                message : 'insert compositeintegration ok',
+                data : results[0]
+            })  
+    }
+    catch(error){
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
+})
+
 
 // ทำการ run server
 app.listen( port, async (req,res) => {

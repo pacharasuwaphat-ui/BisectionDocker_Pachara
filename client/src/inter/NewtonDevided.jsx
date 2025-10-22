@@ -246,12 +246,12 @@ function NewtonDivided() {
                   ))}
                   
                   <center>
-                      <button type="submit">Select</button>
+                      <button className='btn btn-calc' type="submit">Select</button>
                   </center>
                   </form>
               </div>
               <center>
-                  <button onClick={Cancel}>Cancel</button>
+                  <button className='btn btn-calc' onClick={Cancel}>Cancel</button>
               </center>
             </div>
           )}

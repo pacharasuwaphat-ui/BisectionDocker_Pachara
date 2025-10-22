@@ -129,3 +129,47 @@
 .ndd-check {
   transform: scale(1.2);
 }
+
+.spline-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.spline-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.spline-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spline-tab {
+  background-color: #f3f4f6;
+  color: #333;
+  padding: 8px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.spline-tab:hover {
+  background-color: #e5e7eb;
+}
+
+.spline-tab.active {
+  background-color: #22c55e; /* สีเขียว */
+  color: white;
+}
+
+.spline-mode-display {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
