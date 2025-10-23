@@ -55,12 +55,13 @@ function Secant() {
       // ------- ตรงนี้ --------
       const data = {
         equation : Equation,
-        x0 : X0,
-        x1 : X1,
-        error : Er
+        xl : X0,
+        xr : X1,
+        error : Er,
+        method : "secant"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/Secant', data)
+      const response = await axios.post('http://localhost:8000/root2x', data)
       console.log('response' , response.data)
 
     }catch(error){
@@ -82,15 +83,15 @@ function Secant() {
     const selected = Old.find(item => item.equation === value);
     if (selected) {
       setText(selected.equation);
-      setX0(selected.x0);
-      setX1(selected.x1);
+      setX0(selected.xl);
+      setX1(selected.xr);
       seteR(selected.error);
     }
     Cancel()
   }
 
   function Calculation(){
-    if(Equation === "" || X0 == "" || Er === "")  {
+    if(Equation === "" || X0 === "" || Er === "")  {
       alert("ท่านสุภาพบุรุษ/สุภาพสตรีอาจจะมีครรภ์หรือไม่มีก็แล้วแต่ แต่ท่านกรอกข้อมูลไม่ครบนะไอหนู");
       return;
     }
@@ -205,7 +206,7 @@ function Secant() {
                         checked={value === items.equation}
                         onChange={(e) => setValue(e.target.value)}
                     />
-                    {items.equation + ", X0 = " + items.x0 + ", X1 = " + items.x1 + ", Error = " + items.error + ", "}
+                    {items.equation + ", X0 = " + items.xl + ", X1 = " + items.xr + ", Error = " + items.error + ", "}
                     </label>
                     </center>
                 ))}

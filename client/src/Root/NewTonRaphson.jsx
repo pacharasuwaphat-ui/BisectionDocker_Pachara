@@ -55,10 +55,11 @@ function NewtonRaphson() {
       const data = {
         equation : Equation,
         x : X0,
-        error : Er
+        error : Er,
+        method : "newton"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/NewtonRaphson', data)
+      const response = await axios.post('http://localhost:8000/root1x', data)
       console.log('response' , response.data)
 
     }catch(error){

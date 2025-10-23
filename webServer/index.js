@@ -24,74 +24,32 @@ const initMySQL = async () => {
     });
     console.log("✅ MySQL connected");
 
-    //----------------Bisection----------------
+    //----------------root2x----------------
     await conn.query(`
-        CREATE TABLE IF NOT EXISTS bisectionproblems(
-            equation varchar(255) PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS root2x(
+            equation varchar(255) ,
             xr float,
             xl float,
-            error float
+            error float,
+            method varchar(255),
+            PRIMARY KEY( equation , xr , xl , error , method)
         )
-    `);
-    console.log("✅ Table 'bisectionproblems' ensured");
+    `); 
+    console.log("✅ Table 'root2x' ensured");
 
 
-    //----------------Graphical----------------
+    //----------------root1x----------------
     await conn.query(`
-        CREATE TABLE IF NOT EXISTS graphicalproblems(
-            equation varchar(255) PRIMARY KEY,
-            xr float,
-            xl float,
-            error float
-        )
-    `);
-    console.log("✅ Table 'graphicalproblems' ensured");
-
-
-    //----------------FalsePosition----------------
-    await conn.query(`
-        CREATE TABLE IF NOT EXISTS falseposition(
-            equation varchar(255) PRIMARY KEY,
-            xr float,
-            xl float,
-            error float
-        )
-    `);
-    console.log("✅ Table 'falseposition' ensured");
-
-
-    //----------------OnePoint----------------
-    await conn.query(`
-        CREATE TABLE IF NOT EXISTS onepoint(
-            equation varchar(255) PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS root1x(
+            equation varchar(255) ,
             x float,
-            error float
+            error float,
+            method varchar(255),
+            PRIMARY KEY (equation , x , error , method)
         )
     `);
-    console.log("✅ Table 'onepoint' ensured");
+    console.log("✅ Table 'root1x' ensured");
 
-
-    //----------------NewtonRaphson----------------
-    await conn.query(`
-        CREATE TABLE IF NOT EXISTS newtonraphson(
-            equation varchar(255) PRIMARY KEY,
-            x float,
-            error float
-        )
-    `);
-    console.log("✅ Table 'newtonraphson' ensured");
-
-
-    //----------------Secant----------------
-    await conn.query(`
-        CREATE TABLE IF NOT EXISTS secant(
-            equation varchar(255) PRIMARY KEY,
-            x0 float,
-            x1 float,
-            error float
-        )
-    `);
-    console.log("✅ Table 'secant' ensured");
 
     //----------------interpolation----------------
     await conn.query(`
@@ -143,6 +101,44 @@ const initMySQL = async () => {
     `);
     console.log("✅ Table 'compositeintegration' ensured");
 
+    //----------------LinearAlgebra----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS LinearAlgebra(
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            n int,
+            error int,
+            method varchar(255)
+        )
+    `);
+    console.log("✅ Table 'LinearAlgebra' ensured");
+
+    //----------------Linear_A----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS Linear_A(
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            data float,
+            index_i int,
+            index_j int,
+            linear_id int,
+            FOREIGN KEY (linear_id) REFERENCES LinearAlgebra(id)
+            ON DELETE CASCADE
+        )
+    `);
+    console.log("✅ Table 'Linear_A' ensured");
+
+    //----------------Linear_B----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS Linear_B(
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            data float,
+            index_i int,
+            linear_id int,
+            FOREIGN KEY (linear_id) REFERENCES LinearAlgebra(id)
+            ON DELETE CASCADE
+        )
+    `);
+    console.log("✅ Table 'Linear_B' ensured");
+
 
   } catch(err) {
     console.error("❌ Cannot init MySQL or create table:", err.message);
@@ -157,42 +153,42 @@ const port = 8000
 // path = GET /Bisection
 app.get('/Bisection' , async (req,res) =>{
     console.log('GET Bisection Complete')
-    const results = await conn.query('SELECT * FROM bisectionproblems')
+    const results = await conn.query('SELECT * FROM root2x where method = "bisection"')
     res.json(results[0])
 })
 
 // path = GET /Graphical
 app.get('/Graphical' , async (req,res) =>{
     console.log('GET Graphical Complete')
-    const results = await conn.query('SELECT * FROM graphicalproblems')
+    const results = await conn.query('SELECT * FROM root2x where method = "graphical"')
     res.json(results[0])
 })
 
 // path = GET /FalsePosition
 app.get('/FalsePosition' , async (req,res) =>{
     console.log('GET FalsePosition Complete')
-    const results = await conn.query('SELECT * FROM falseposition')
+    const results = await conn.query('SELECT * FROM root2x where method = "false"')
     res.json(results[0])
 })
 
 // path = GET /OnePoint
 app.get('/OnePoint' , async (req,res) =>{
     console.log('GET OnePoint Complete')
-    const results = await conn.query('SELECT * FROM onepoint')
+    const results = await conn.query('SELECT * FROM root1x where method = "onepoint"')
     res.json(results[0])
 })
 
 // path = GET /NewtonRaphson
 app.get('/NewtonRaphson' , async (req,res) =>{
     console.log('GET NewtonRaphson Complete')
-    const results = await conn.query('SELECT * FROM newtonraphson')
+    const results = await conn.query('SELECT * FROM root1x where method = "newton"')
     res.json(results[0])
 })
 
 // path = GET /Secant
 app.get('/Secant' , async (req,res) =>{
     console.log('GET Secant Complete')
-    const results = await conn.query('SELECT * FROM secant')
+    const results = await conn.query('SELECT * FROM root2x where method = "secant"')
     res.json(results[0])
 })
 
@@ -350,34 +346,194 @@ app.get('/compositesimpson' , async (req,res) =>{
     res.json(results[0])
 })
 
+// path = GET /cramer
+app.get('/cramer' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'cramer'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'cramer'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let n = results1[0][0].n
+    let er = results1[0][0].error
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : n,
+                error : er,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+
+
+    console.log('GET cramer Complete')
+    res.json(NewResult)
+})
+
+
+// path = GET /guass
+app.get('/guass' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'guass'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'guass'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let n = results1[0][0].n
+    let er = results1[0][0].error
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : n,
+                error : er,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    console.log('GET guass Complete')
+    res.json(NewResult)
+})
+
+
+// path = GET /guassjordan
+app.get('/guassjordan' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'guassjordan'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'guassjordan'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let n = results1[0][0].n
+    let er = results1[0][0].error
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : n,
+                error : er,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    console.log('GET guass Complete')
+    res.json(NewResult)
+})
+
 
 // --------------------------POST----------------------------------
 
-// path = POST /Bisection สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/Bisection' , async(req,res) =>{
+// path = POST /root2x (graphical , bisection , false , secant) สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
+app.post('/root2x' , async(req,res) =>{
     try{
         let data = req.body
-            const results = await conn.query('INSERT INTO bisectionproblems SET ?', data)
+            const results = await conn.query('INSERT INTO root2x SET ?', data)
             res.json({
-                message : 'insert Bisection ok',
-                data : results[0]
-            })  
-    }
-    catch(error){
-        console.error('error message',error.message)
-        res.status(500).json({
-            message: 'something wrong',
-        })
-    }
-})
-
-// path = POST /Graphical สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/Graphical' , async(req,res) =>{
-    try{
-        let data = req.body
-            const results = await conn.query('INSERT INTO graphicalproblems SET ?', data)
-            res.json({
-                message : 'insert Graphical ok',
+                message : 'insert '+data.method+' ok',
                 data : results[0]
             })  
     }
@@ -390,70 +546,13 @@ app.post('/Graphical' , async(req,res) =>{
 })
 
 
-// path = POST /FalsePosition สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/FalsePosition' , async(req,res) =>{
+// path = POST /root1x ( newtonraphson , onepoint ) สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
+app.post('/root1x' , async(req,res) =>{
     try{
         let data = req.body
-            const results = await conn.query('INSERT INTO falseposition SET ?', data)
+            const results = await conn.query('INSERT INTO root1x SET ?', data)
             res.json({
-                message : 'insert FalsePosition ok',
-                data : results[0]
-            })  
-    }
-    catch(error){
-        console.error('error message',error.message)
-        res.status(500).json({
-            message: 'something wrong',
-        })
-    }
-})
-
-
-// path = POST /OnePoint สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/OnePoint' , async(req,res) =>{
-    try{
-        let data = req.body
-            const results = await conn.query('INSERT INTO onepoint SET ?', data)
-            res.json({
-                message : 'insert OnePoint ok',
-                data : results[0]
-            })  
-    }
-    catch(error){
-        console.error('error message',error.message)
-        res.status(500).json({
-            message: 'something wrong',
-        })
-    }
-})
-
-
-// path = POST /NewtonRaphson สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/NewtonRaphson' , async(req,res) =>{
-    try{
-        let data = req.body
-            const results = await conn.query('INSERT INTO newtonraphson SET ?', data)
-            res.json({
-                message : 'insert NewtonRaphson ok',
-                data : results[0]
-            })  
-    }
-    catch(error){
-        console.error('error message',error.message)
-        res.status(500).json({
-            message: 'something wrong',
-        })
-    }
-})
-
-
-// path = POST /Secant สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
-app.post('/Secant' , async(req,res) =>{
-    try{
-        let data = req.body
-            const results = await conn.query('INSERT INTO secant SET ?', data)
-            res.json({
-                message : 'insert Secant ok',
+                message : 'insert '+data.method+' ok',
                 data : results[0]
             })  
     }
@@ -532,6 +631,47 @@ app.post('/compositeintegration' , async(req,res) =>{
                 message : 'insert compositeintegration ok',
                 data : results[0]
             })  
+    }
+    catch(error){
+        console.error('error message',error.message)
+        res.status(500).json({
+            message: 'something wrong',
+        })
+    }
+})
+
+
+// path = POST /linearAlgebra 
+app.post('/linearAlgebra' , async(req,res) =>{
+    try{
+        let data = req.body
+        let main = {
+            n : data.n,
+            error : data.error,
+            method : data.method
+        }
+        const results = await conn.query('INSERT INTO linearalgebra SET ?', main)
+        for(let i=0;i<data.A.length;i++){
+            for(let j=0;j<data.A[i].length;j++){
+                let A = {
+                    data : data.A[i][j],
+                    index_i : i,
+                    index_j : j,
+                    linear_id : results[0].insertId
+                }
+                await conn.query('INSERT INTO linear_a SET ?', A)
+            }
+            let B = {
+                data : data.B[i],
+                index_i : i,
+                linear_id : results[0].insertId
+            }
+            await conn.query('INSERT INTO linear_b SET ?', B)
+        }
+        res.json({
+            message : 'insert linearalgebra ok',
+            data : results[0]
+        })  
     }
     catch(error){
         console.error('error message',error.message)

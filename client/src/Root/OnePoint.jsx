@@ -55,10 +55,11 @@ function OnePoint() {
       const data = {
         equation : Equation,
         x : X0,
-        error : Er
+        error : Er,
+        method : "onepoint"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/OnePoint', data)
+      const response = await axios.post('http://localhost:8000/root1x', data)
       console.log('response' , response.data)
 
     }catch(error){

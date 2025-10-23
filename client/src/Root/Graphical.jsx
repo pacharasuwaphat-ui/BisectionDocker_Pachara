@@ -56,10 +56,11 @@ function Graphical() {
         equation : Equation,
         xr : XR,
         xl : XL,
-        error : Er
+        error : Er,
+        method : "graphical"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/Graphical', data)
+      const response = await axios.post('http://localhost:8000/root2x', data)
       console.log('response' , response.data)
 
     }catch(error){

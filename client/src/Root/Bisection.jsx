@@ -59,10 +59,11 @@ function Bisection() {
         equation : Equation,
         xr : XR,
         xl : XL,
-        error : Er
+        error : Er,
+        method : "bisection"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/Bisection', data)
+      const response = await axios.post('http://localhost:8000/root2x', data)
       console.log('response' , response.data)
 
     }catch(error){

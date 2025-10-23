@@ -20,6 +20,14 @@ import SingleSimpson from './integration/SingleSimpson.jsx'
 import CompositeTrapezoidal from './integration/CompositeTrapzoidal.jsx'
 import CompositeSimpson from './integration/CompositeSimpson.jsx'
 
+import Conjugate from './linear/Conjugate.jsx'
+import Cramer from './linear/Cramer.jsx'
+import Guass from './linear/Guass.jsx'
+import GuassJordan from './linear/GuassJordan.jsx'
+import Inversion from './linear/inversion.jsx'
+import LU from './linear/LU.jsx'
+import Jacobi from './linear/Jacobi.jsx'
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -70,7 +78,7 @@ const router = createBrowserRouter([
     element: <Spline/>,
   },
 
-// ------------------------ interpolation ---------------------------------
+// ------------------------ integration  ---------------------------------
 
   {
     path: "/integration/single_trapezoidal",
@@ -88,6 +96,38 @@ const router = createBrowserRouter([
     path: "/integration/composite_simpson",
     element: <CompositeSimpson/>,
   },
+
+// ------------------------ Linear Algebra  ---------------------------------
+
+  {
+    path: "/linear/conjugate",
+    element: <Conjugate/>,
+  },
+  {
+    path: "/linear/cramer",
+    element: <Cramer/>,
+  },
+  {
+    path: "/linear/guass",
+    element: <Guass/>,
+  },
+  {
+    path: "/linear/guassjordan",
+    element: <GuassJordan/>,
+  },
+  {
+    path: "/linear/inversion",
+    element: <Inversion/>,
+  },
+  {
+    path: "/linear/lu",
+    element: <LU/>,
+  },
+  {
+    path: "/linear/jacobi",
+    element: <Jacobi/>,
+  },
+
 
 
 ]);

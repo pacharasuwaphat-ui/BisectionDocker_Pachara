@@ -39,9 +39,13 @@ function falseposition() {
   }
 
   function getOldProblem() {
+    fetchDatabase()
     setShowOld(true);
     setShowNew(false);
-    fetchDatabase()
+  }
+  function Cancel() {
+    setShowOld(false);
+    setShowNew(true);
   }
 
   const PushDataBase = async() =>{
@@ -51,10 +55,11 @@ function falseposition() {
         equation : Equation,
         xr : XR,
         xl : XL,
-        error : Er
+        error : Er,
+        method : "false"
       }
       console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/FalsePosition', data)
+      const response = await axios.post('http://localhost:8000/root2x', data)
       console.log('response' , response.data)
 
     }catch(error){
