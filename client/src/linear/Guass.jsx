@@ -134,14 +134,17 @@ function Guass() {
         data.push(null)
     };
 
-    for(let i=1;i<N;i++){
-        for(let j=0;j<i;j++){
-          const factor = M[j][i] / M[i][i];
-            for(let k=0;k<=N;k++){
-                M[i][k] -= factor*M[j][k]
-            }
+    // forward
+    for(let j=0;j<N-1;j++){
+      for(let i=j+1;i<N;i++){
+        let factor = M[i][j]
+        for(let k=0;k<N*2;k++){
+          M[i][k] -= M[i-1][k]/M[j][j]*factor
         }
+      }
     }
+
+    // back sub
     let backsub = []
     for(let i=0;i<N;i++) backsub.push(0);
     for(let i=N-1;i>=0;i--){

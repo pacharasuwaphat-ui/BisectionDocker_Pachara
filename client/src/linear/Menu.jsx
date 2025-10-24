@@ -18,6 +18,7 @@ function Menu({current}) {
         <Link to="/linear/inversion" className={isCurrent('inversion')}>inversion</Link>
         <Link to="/linear/lu" className={isCurrent('lu')}>LU</Link>
         <Link to="/linear/jacobi" className={isCurrent('jacobi')}>Jacobi</Link>
+        <Link to="/linear/guassseidel" className={isCurrent('guassseidel')}>Guass_Seidel</Link>
         <Link to="/linear/conjugate" className={isCurrent('conjugate')}>Conjugate</Link>
         
         

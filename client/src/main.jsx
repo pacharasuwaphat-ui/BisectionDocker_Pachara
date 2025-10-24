@@ -27,6 +27,7 @@ import GuassJordan from './linear/GuassJordan.jsx'
 import Inversion from './linear/inversion.jsx'
 import LU from './linear/LU.jsx'
 import Jacobi from './linear/Jacobi.jsx'
+import GuassSeidel from './linear/GuassSeidel.jsx'
 
 import {
   createBrowserRouter,
@@ -126,6 +127,10 @@ const router = createBrowserRouter([
   {
     path: "/linear/jacobi",
     element: <Jacobi/>,
+  },
+  {
+    path: "/linear/guassseidel",
+    element: <GuassSeidel/>,
   },
 
 

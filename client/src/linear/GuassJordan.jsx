@@ -133,19 +133,23 @@ function GuassJordan() {
         M[i].push(B[i])
     };
 
-    for(let i=1;i<N;i++){
-        for(let j=0;j<i;j++){
-            for(let k=0;k<=N;k++){
-                M[i][k] -= M[i][j]/M[j][j]*M[j][k]
-            }
+    // forward elim
+    for(let j=0;j<N-1;j++){
+      for(let i=j+1;i<N;i++){
+        let factor = M[i][j]
+        for(let k=0;k<N*2;k++){
+          M[i][k] -= M[i-1][k]/M[j][j]*factor
         }
+      }
     }
-    for(let i=N-1;i>=0;i--){
-        for(let j=N-1;j>i;j--){
-            for(let k=0;k<=N;k++){
-                M[i][k] -= M[i][j]/M[j][j]*M[j][k]
-            }
+    // backward elim
+    for(let j=N-1;j>0;j--){
+      for(let i=j-1;i>=0;i--){
+        let factor = M[i][j]
+        for(let k=0;k<N*2;k++){
+          M[i][k] -= M[i+1][k]/M[j][j]*factor
         }
+      }
     }
     console.table(M)
 
@@ -158,7 +162,7 @@ function GuassJordan() {
     }
 
     setIterations(data);
-    // PushDataBase()
+    PushDataBase()
   }
 
 

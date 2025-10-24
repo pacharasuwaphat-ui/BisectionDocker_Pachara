@@ -7,7 +7,7 @@ import axios from "axios";
 import Nav from './Menu'
 import './UI.css'
 
-function Inversion() {
+function GuassSeidel() {
 
   const [value, setValue] = useState("");
 
@@ -16,6 +16,8 @@ function Inversion() {
   ]);
   const [X, setX] = useState([]);
   const [B, setB] = useState([]);
+  const [X0 , setX0] = useState([]);
+  const [Er, seteR] = useState("");
 
   const [Iterations, setIterations] = useState([]);
   const [Old, setOld] = useState([]);
@@ -26,7 +28,7 @@ function Inversion() {
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
     try {
-      fetch('http://localhost:8000/invers')
+      fetch('http://localhost:8000/guassseidel')
       .then((response) =>{
         return response.json()
       })
@@ -59,6 +61,7 @@ function Inversion() {
       setSize(selected.n);
       setA(selected.A);
       setB(selected.B);
+      setX0(selected.X0);
     }
     Cancel()
   }
@@ -67,10 +70,11 @@ function Inversion() {
     try{
       const data = {
         n : Size,
-        error : 0,
-        method : "invers",
+        error : Er,
+        method : "guassseidel",
         A : A,
-        B : B
+        B : B,
+        X0 : X0
         
       }
       console.log('submit data', data)
@@ -92,6 +96,7 @@ function Inversion() {
     let newPoints = [];
     let newX = [];
     let newB = [];
+    let newX0 = [];
     for(let i=0;i<newCount;i++){
         let temp = [];
         for(let j=0;j<newCount;j++){
@@ -100,12 +105,14 @@ function Inversion() {
         newPoints.push(temp);
         newX.push('x'+i)
         newB.push(null)
+        newX0.push(null)
         
     }
     
     setA(newPoints);
     setX(newX);
     setB(newB);
+    setX0(newX0);
 
   };
 
@@ -122,61 +129,53 @@ function Inversion() {
         newPoints[i] = parseFloat(value);
         setB(newPoints);
     }
+    if(name === 'x0'){
+        const newPoints = [...X0];
+        newPoints[i] = parseFloat(value);
+        setX0(newPoints);
+    }
   };
 
   function Calculation(){
-    const N = Size
-    let M = A.map(row => row.map(data => data)) 
-    for(let i=0;i<N;i++) {
-      for(let j=0;j<N;j++){
-        if(i==j) M[i].push(1)
-        else M[i].push(0)
-      }
-    };
-    // forward elim
-    for(let j=0;j<N-1;j++){
-      for(let i=j+1;i<N;i++){
-        let factor = M[i][j]
-        for(let k=0;k<N*2;k++){
-          M[i][k] -= M[i-1][k]/M[j][j]*factor
+    const N = Size;
+    let data = [];
+    const error = parseFloat(Er)
+    let xi = []
+
+    // initial
+    for(let i=0;i<N;i++)xi.push(X0[i])
+    
+    let it = 0
+    while(1){
+      it++;
+      const xBefore = structuredClone(xi);
+      for(let k=0;k<N;k++){
+        xi[k] = B[k]
+        for(let j=0;j<N;j++){
+          if(j == k) continue
+          xi[k] -= A[k][j]*xi[j]
         }
+        xi[k] /= A[k][k]
       }
+      let obj = { Iterations: it };
+      let Log = true
+      let xError = []
+      for(let k=0;k<N;k++){
+        xError.push(Math.abs((xi[k]-xBefore[k])/xi[k]))
+        if(xError[k] > error) Log = false
+      }
+
+      xi.forEach((p, i) => {
+        obj['x' + (i + 1)] = p;   // ตั้งชื่อ key แบบไดนามิก
+      });
+      xError.forEach((p, i) => {
+        obj['error' + (i + 1)] = p;   // ตั้งชื่อ key แบบไดนามิก
+      });
+      data.push(obj);
+      if(Log || it == 100) break;
     }
-    // backward elim
-    for(let j=N-1;j>0;j--){
-      for(let i=j-1;i>=0;i--){
-        let factor = M[i][j]
-        for(let k=0;k<N*2;k++){
-          M[i][k] -= M[i+1][k]/M[j][j]*factor
-        }
-      }
-    }
-    // ทำให้เป็น 1
-    for(let i=0;i<N;i++){
-      let factor = M[i][i]
-      for(let k=0;k<N*2;k++){
-        M[i][k] /= factor
-      }
-    }
-
-    // Copy invers
-    let invers = []
-    for(let i=0;i<N;i++) {
-      let temp = []
-      for(let j=0;j<N;j++){
-        temp.push(M[i][j+N])
-      }
-      invers.push(temp)
-    };
-
-    const result = multiply(invers, B);
-
-    // แปลงเป็นรูปแบบที่ TableIteration อ่านได้
-    const data = result.map((val, i) => ({
-      xi: `x${i + 1}`,
-      ans: Array.isArray(val) ? val[0] : val // ป้องกันซ้อน []
-    }));
-
+    
+    
     setIterations(data);
     PushDataBase()
   }
@@ -184,19 +183,28 @@ function Inversion() {
 
   return (
     <>
-        <Nav current={'inversion'}></Nav>
+        <Nav current={'guassseidel'}></Nav>
         <div className="EquationBox">
 
             <h1>
-            Martrix Inversion
+            Guass-Seidel Iterations
             </h1>
             <div className='Textinput'>
             <button className="btn btn-decrease" onClick={() => updateNumPoints(-1)}>-</button>
               <span className="Count">       {    Size     }        </span>
               <button className="btn btn-increase" onClick={() => updateNumPoints(1)}>+</button>
+              {showNew && (<input
+                type= "text"
+                value = {Er} 
+                onChange={(e) => seteR(e.target.value)} // อัพเดท state เมื่อพิมพ์
+                placeholder="Error"
+                className="X"
+                />)}
             </div>
             {showNew && (
+              
             <div>
+              
             {A.slice(0, Size).map((point, i) => 
                 <div key={`row-${i}`}>
                     {point.slice(0, Size).map((p, j) => (
@@ -228,6 +236,18 @@ function Inversion() {
                     />
                 </div>
                 )}
+                <div className='x0'>
+                {X0.slice(0,Size).map((p,i) =>(
+                    <input
+                        key={`X0-${i}`}
+                        type="number"
+                        placeholder={` x0[${i}]`}
+                        value={X0[i]  ?? ''}
+                        onChange={(e) => oneDChange(i,'x0', e.target.value)}
+                        className='element-a'
+                    />
+                ))}
+            </div>
             <center>
                 <button className='btn btn-calc' onClick={() => Calculation()}>Calculate</button>
             </center>
@@ -235,6 +255,7 @@ function Inversion() {
                 <button className='btn btn-calc' onClick={() => getOldProblem()}>Get Old</button>
             </center>   
             </div>
+            
             )}
           {showOld && (
             <div>
@@ -267,6 +288,12 @@ function Inversion() {
                           {p + ','}
                         </span>
                       ))}{"]" }
+                      {" X0 -> [" }
+                      {items.X0.map((p, i) => (
+                        <span key={i}>
+                          {p + ','}
+                        </span>
+                      ))}{"]" }
                       </label>
                       </center>
                   ))}
@@ -291,4 +318,4 @@ function Inversion() {
   )
 }
 
-export default Inversion
+export default GuassSeidel

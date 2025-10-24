@@ -138,6 +138,19 @@ const initMySQL = async () => {
         )
     `);
     console.log("✅ Table 'Linear_B' ensured");
+    
+    //----------------Linear_X0----------------
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS Linear_X0(
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            data float,
+            index_i int,
+            linear_id int,
+            FOREIGN KEY (linear_id) REFERENCES LinearAlgebra(id)
+            ON DELETE CASCADE
+        )
+    `);
+    console.log("✅ Table 'Linear_X0' ensured");
 
 
   } catch(err) {
@@ -362,12 +375,11 @@ app.get('/cramer' , async (req,res) =>{
     `);
     let NewResult = []
     let A = []
-    let n = results1[0][0].n
-    let er = results1[0][0].error
     let count = 0
     let c = 0
     let row = []
     for(const r of results1[0]){
+        let n = r.n
         count++
         c++
         row.push(r.data)
@@ -379,8 +391,8 @@ app.get('/cramer' , async (req,res) =>{
         if(c === n*n){
             NewResult.push({
                 id : r.id,
-                n : n,
-                error : er,
+                n : r.n,
+                error : r.error,
                 A : A,
                 B : []
             })
@@ -392,6 +404,7 @@ app.get('/cramer' , async (req,res) =>{
     count = 0
     let k = 0
     for(const r of results2[0]){
+        let n = r.n
         count++
         B.push(r.data)
         if(count === n){
@@ -400,9 +413,7 @@ app.get('/cramer' , async (req,res) =>{
             B = []
         }
     }
-
-
-    console.log('GET cramer Complete')
+    console.log('GET guassjordan Complete')
     res.json(NewResult)
 })
 
@@ -423,12 +434,11 @@ app.get('/guass' , async (req,res) =>{
     `);
     let NewResult = []
     let A = []
-    let n = results1[0][0].n
-    let er = results1[0][0].error
     let count = 0
     let c = 0
     let row = []
     for(const r of results1[0]){
+        let n = r.n
         count++
         c++
         row.push(r.data)
@@ -440,8 +450,8 @@ app.get('/guass' , async (req,res) =>{
         if(c === n*n){
             NewResult.push({
                 id : r.id,
-                n : n,
-                error : er,
+                n : r.n,
+                error : r.error,
                 A : A,
                 B : []
             })
@@ -453,6 +463,7 @@ app.get('/guass' , async (req,res) =>{
     count = 0
     let k = 0
     for(const r of results2[0]){
+        let n = r.n
         count++
         B.push(r.data)
         if(count === n){
@@ -461,7 +472,7 @@ app.get('/guass' , async (req,res) =>{
             B = []
         }
     }
-    console.log('GET guass Complete')
+    console.log('GET guassjordan Complete')
     res.json(NewResult)
 })
 
@@ -482,12 +493,11 @@ app.get('/guassjordan' , async (req,res) =>{
     `);
     let NewResult = []
     let A = []
-    let n = results1[0][0].n
-    let er = results1[0][0].error
     let count = 0
     let c = 0
     let row = []
     for(const r of results1[0]){
+        let n = r.n
         count++
         c++
         row.push(r.data)
@@ -499,8 +509,8 @@ app.get('/guassjordan' , async (req,res) =>{
         if(c === n*n){
             NewResult.push({
                 id : r.id,
-                n : n,
-                error : er,
+                n : r.n,
+                error : r.error,
                 A : A,
                 B : []
             })
@@ -512,6 +522,7 @@ app.get('/guassjordan' , async (req,res) =>{
     count = 0
     let k = 0
     for(const r of results2[0]){
+        let n = r.n
         count++
         B.push(r.data)
         if(count === n){
@@ -520,7 +531,281 @@ app.get('/guassjordan' , async (req,res) =>{
             B = []
         }
     }
-    console.log('GET guass Complete')
+    console.log('GET guassjordan Complete')
+    res.json(NewResult)
+})
+
+
+// path = GET /invers
+app.get('/invers' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'invers'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'invers'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    console.log('GET invers Complete')
+    res.json(NewResult)
+})
+
+
+// path = GET /lu
+app.get('/lu' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'lu'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'lu'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    console.log('GET lu Complete')
+    res.json(NewResult)
+})
+
+// path = GET /jacobi
+app.get('/jacobi' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, b.index_i
+    `);
+    const results3 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_x0 b
+        where linears.id = b.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : [],
+                X0 : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    let C = []
+    count = 0
+     k = 0
+    for(const r of results3[0]){
+        let n = r.n
+        count++
+        C.push(r.data)
+        if(count === n){
+            NewResult[k++].X0 = C
+            count = 0
+            C = []
+        }
+    }
+    console.log('GET jacobi Complete')
+    res.json(NewResult)
+})
+
+// path = GET /guassseidel
+app.get('/guassseidel' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, b.index_i
+    `);
+    const results3 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_x0 b
+        where linears.id = b.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : [],
+                X0 : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    let C = []
+    count = 0
+     k = 0
+    for(const r of results3[0]){
+        let n = r.n
+        count++
+        C.push(r.data)
+        if(count === n){
+            NewResult[k++].X0 = C
+            count = 0
+            C = []
+        }
+    }
+    console.log('GET jacobi Complete')
     res.json(NewResult)
 })
 
@@ -667,6 +952,14 @@ app.post('/linearAlgebra' , async(req,res) =>{
                 linear_id : results[0].insertId
             }
             await conn.query('INSERT INTO linear_b SET ?', B)
+            if('X0' in data){
+                let X0 = {
+                    data : data.X0[i],
+                    index_i : i,
+                    linear_id : results[0].insertId
+                }
+                await conn.query('INSERT INTO linear_x0 SET ?', X0)
+            }
         }
         res.json({
             message : 'insert linearalgebra ok',
