@@ -1,13 +1,12 @@
 import React from 'react'
 import { useState } from 'react'
 import { multiply   } from "mathjs";
-import Graph from '../component/Graph';
 import Table from '../component/TableIteration'
 import axios from "axios"; 
 import Nav from './Menu'
 import './UI.css'
 
-function Jacobi() {
+function Cholesky() {
 
   const [value, setValue] = useState("");
 
@@ -16,8 +15,6 @@ function Jacobi() {
   ]);
   const [X, setX] = useState([]);
   const [B, setB] = useState([]);
-  const [X0 , setX0] = useState([]);
-  const [Er, seteR] = useState("");
 
   const [Iterations, setIterations] = useState([]);
   const [Old, setOld] = useState([]);
@@ -28,7 +25,7 @@ function Jacobi() {
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
     try {
-      fetch('http://localhost:8000/jacobi')
+      fetch('http://localhost:8000/cholesky')
       .then((response) =>{
         return response.json()
       })
@@ -61,8 +58,6 @@ function Jacobi() {
       setSize(selected.n);
       setA(selected.A);
       setB(selected.B);
-      setX0(selected.X0);
-      seteR(selected.error)
     }
     Cancel()
   }
@@ -71,11 +66,10 @@ function Jacobi() {
     try{
       const data = {
         n : Size,
-        error : Er,
-        method : "jacobi",
+        error : 0,
+        method : "cholesky",
         A : A,
-        B : B,
-        X0 : X0
+        B : B
         
       }
       console.log('submit data', data)
@@ -97,7 +91,6 @@ function Jacobi() {
     let newPoints = [];
     let newX = [];
     let newB = [];
-    let newX0 = [];
     for(let i=0;i<newCount;i++){
         let temp = [];
         for(let j=0;j<newCount;j++){
@@ -106,14 +99,12 @@ function Jacobi() {
         newPoints.push(temp);
         newX.push('x'+i)
         newB.push(null)
-        newX0.push(null)
         
     }
     
     setA(newPoints);
     setX(newX);
     setB(newB);
-    setX0(newX0);
 
   };
 
@@ -130,53 +121,70 @@ function Jacobi() {
         newPoints[i] = parseFloat(value);
         setB(newPoints);
     }
-    if(name === 'x0'){
-        const newPoints = [...X0];
-        newPoints[i] = parseFloat(value);
-        setX0(newPoints);
-    }
   };
 
   function Calculation(){
     const N = Size;
     let data = [];
-    const error = parseFloat(Er)
-    let xi = []
-
-    // initial
-    for(let i=0;i<N;i++)xi.push(X0[i])
-    
-    let it = 0
-    while(1){
-      it++;
-      const xBefore = structuredClone(xi);
-      for(let k=0;k<N;k++){
-        xi[k] = B[k]
-        for(let j=0;j<N;j++){
-          if(j == k) continue
-          xi[k] -= A[k][j]*xBefore[j]
-        }
-        xi[k] /= A[k][k]
+    let L = [];
+    let LT = [];
+    for(let i=0;i<N;i++){
+      let tempL = [];
+      let tempLT = []
+      for(let j=0;j<N;j++){
+        tempL.push(0)
+        tempLT.push(0)
       }
-      let obj = { Iterations: it };
-      let Log = true
-      let xError = []
-      for(let k=0;k<N;k++){
-        xError.push(Math.abs((xi[k]-xBefore[k])/xi[k]))
-        if(xError[k] > error) Log = false
-      }
-
-      xi.forEach((p, i) => {
-        obj['x' + (i + 1)] = p;   // ตั้งชื่อ key แบบไดนามิก
-      });
-      xError.forEach((p, i) => {
-        obj['error' + (i + 1)] = p;   // ตั้งชื่อ key แบบไดนามิก
-      });
-      data.push(obj);
-      if(Log || it == 100) break;
+      L.push(tempL)
+      LT.push(tempLT)
     }
-    
-    
+    console.table(L)
+    console.table(LT)
+
+    for(let i=0;i<N;i++){
+      
+      for(let j=i;j<N;j++){
+        // Find L
+        L[j][i] = A[j][i]
+        // for(let k=0;k<i;k++){
+        //   L[j][i] -= L[j][k]*LT[k][i]
+        // }
+        if(j==i) L[j][i] = Math.sqrt(L[j][i])
+        else L[j][i] /= L[i][i]
+
+        // Find LT
+        // LT[i][j] = L[j][i]
+      }
+    }
+
+    // forward sub
+    let Y = []
+    for(let i=0;i<N;i++) Y.push(0);
+    for(let i=0;i<N;i++){
+        let temp = B[i]
+        for(let j=0;j<i;j++){
+            temp -= L[i][j]*Y[j]
+        }
+        Y[i] = temp/L[i][i]
+    }
+
+    // back sub
+    let backsub = []
+    for(let i=0;i<N;i++) backsub.push(0);
+    for(let i=N-1;i>=0;i--){
+        let temp = Y[i]
+        for(let j=N-1;j>i;j--){
+            temp -= LT[i][j]*backsub[j]
+        }
+        backsub[i] = temp/LT[i][i]
+        data.push({
+            xi : 'x'+(i+1),
+            ans : backsub[i]
+        })
+    }
+    console.table(L)
+    console.table(LT)
+
     setIterations(data);
     PushDataBase()
   }
@@ -184,28 +192,19 @@ function Jacobi() {
 
   return (
     <>
-        <Nav current={'jacobi'}></Nav>
+        <Nav current={'cholesky'}></Nav>
         <div className="EquationBox">
 
             <h1>
-            Jacobi Iterations
+            Cholesky Decomposition
             </h1>
             <div className='Textinput'>
             <button className="btn btn-decrease" onClick={() => updateNumPoints(-1)}>-</button>
               <span className="Count">       {    Size     }        </span>
               <button className="btn btn-increase" onClick={() => updateNumPoints(1)}>+</button>
-              {showNew && (<input
-                type= "text"
-                value = {Er} 
-                onChange={(e) => seteR(e.target.value)} // อัพเดท state เมื่อพิมพ์
-                placeholder="Error"
-                className="X"
-                />)}
             </div>
             {showNew && (
-              
             <div>
-              
             {A.slice(0, Size).map((point, i) => 
                 <div key={`row-${i}`}>
                     {point.slice(0, Size).map((p, j) => (
@@ -237,18 +236,6 @@ function Jacobi() {
                     />
                 </div>
                 )}
-                <div className='x0'>
-                {X0.slice(0,Size).map((p,i) =>(
-                    <input
-                        key={`X0-${i}`}
-                        type="number"
-                        placeholder={` x0[${i}]`}
-                        value={X0[i]  ?? ''}
-                        onChange={(e) => oneDChange(i,'x0', e.target.value)}
-                        className='element-a'
-                    />
-                ))}
-            </div>
             <center>
                 <button className='btn btn-calc' onClick={() => Calculation()}>Calculate</button>
             </center>
@@ -256,7 +243,6 @@ function Jacobi() {
                 <button className='btn btn-calc' onClick={() => getOldProblem()}>Get Old</button>
             </center>   
             </div>
-            
             )}
           {showOld && (
             <div>
@@ -289,12 +275,6 @@ function Jacobi() {
                           {p + ','}
                         </span>
                       ))}{"]" }
-                      {" X0 -> [" }
-                      {items.X0.map((p, i) => (
-                        <span key={i}>
-                          {p + ','}
-                        </span>
-                      ))}{"]" }
                       </label>
                       </center>
                   ))}
@@ -319,4 +299,4 @@ function Jacobi() {
   )
 }
 
-export default Jacobi
+export default Cholesky

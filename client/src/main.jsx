@@ -28,6 +28,7 @@ import Inversion from './linear/inversion.jsx'
 import LU from './linear/LU.jsx'
 import Jacobi from './linear/Jacobi.jsx'
 import GuassSeidel from './linear/GuassSeidel.jsx'
+import Cholesky from './linear/Cholesky.jsx'
 
 import {
   createBrowserRouter,
@@ -131,6 +132,10 @@ const router = createBrowserRouter([
   {
     path: "/linear/guassseidel",
     element: <GuassSeidel/>,
+  },
+  {
+    path: "/linear/cholesky",
+    element: <Cholesky/>,
   },
 
 

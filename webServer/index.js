@@ -106,7 +106,7 @@ const initMySQL = async () => {
         CREATE TABLE IF NOT EXISTS LinearAlgebra(
             id INT AUTO_INCREMENT PRIMARY KEY,
             n int,
-            error int,
+            error double,
             method varchar(255)
         )
     `);
@@ -653,6 +653,64 @@ app.get('/lu' , async (req,res) =>{
     res.json(NewResult)
 })
 
+// path = GET /cholesky
+app.get('/cholesky' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'cholesky'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'cholesky'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    console.log('GET lu Complete')
+    res.json(NewResult)
+})
+
 // path = GET /jacobi
 app.get('/jacobi' , async (req,res) =>{
     const results1 = await conn.query(`
@@ -749,6 +807,85 @@ app.get('/guassseidel' , async (req,res) =>{
         SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
         FROM linearalgebra linears,linear_x0 b
         where linears.id = b.linear_id AND linears.method = 'jacobi'
+        ORDER BY linears.id, b.index_i
+    `);
+    let NewResult = []
+    let A = []
+    let count = 0
+    let c = 0
+    let row = []
+    for(const r of results1[0]){
+        let n = r.n
+        count++
+        c++
+        row.push(r.data)
+        if(count === n){
+            A.push(row)
+            count = 0
+            row = []
+        }
+        if(c === n*n){
+            NewResult.push({
+                id : r.id,
+                n : r.n,
+                error : r.error,
+                A : A,
+                B : [],
+                X0 : []
+            })
+            c = 0
+            A = []
+        }
+    }
+    let B = []
+    count = 0
+    let k = 0
+    for(const r of results2[0]){
+        let n = r.n
+        count++
+        B.push(r.data)
+        if(count === n){
+            NewResult[k++].B = B
+            count = 0
+            B = []
+        }
+    }
+    let C = []
+    count = 0
+     k = 0
+    for(const r of results3[0]){
+        let n = r.n
+        count++
+        C.push(r.data)
+        if(count === n){
+            NewResult[k++].X0 = C
+            count = 0
+            C = []
+        }
+    }
+    console.log('GET jacobi Complete')
+    res.json(NewResult)
+})
+
+
+// path = GET /conjugate
+app.get('/conjugate' , async (req,res) =>{
+    const results1 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , a.data , a.index_i , a.index_j
+        FROM linearalgebra linears,linear_a a
+        where linears.id = a.linear_id AND linears.method = 'conjugate'
+        ORDER BY linears.id, a.index_i , a.index_j
+    `);
+    const results2 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_b b
+        where linears.id = b.linear_id AND linears.method = 'conjugate'
+        ORDER BY linears.id, b.index_i
+    `);
+    const results3 = await conn.query(`
+        SELECT linears.id   , linears.n , linears.error , b.data , b.index_i 
+        FROM linearalgebra linears,linear_x0 b
+        where linears.id = b.linear_id AND linears.method = 'conjugate'
         ORDER BY linears.id, b.index_i
     `);
     let NewResult = []

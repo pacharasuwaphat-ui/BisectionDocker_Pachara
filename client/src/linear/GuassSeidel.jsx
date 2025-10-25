@@ -62,6 +62,7 @@ function GuassSeidel() {
       setA(selected.A);
       setB(selected.B);
       setX0(selected.X0);
+      seteR(selected.error);
     }
     Cancel()
   }
