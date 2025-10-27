@@ -5,14 +5,40 @@
     width: 70px;
     height: 70px;
     margin: 10px;
+    text-align: center;
 }
 
 .element-x{
     width: 70px;
     height: 70px;
     margin: 10px 50px;
+    text-align: center;
+}
+
+.Symelement{
+    width: 70px;
+    height: 70px;
+    margin: 0px;
+    font-size: 20px;
+    border: 1px solid gray;
+    background-color: lightgray;
+    align-items: center;
+    align-content: center;
+    text-align: center;
+}
+
+.Symrows{
+    display: flex;
 }
 
 .x0{
     margin-top: 20px;
+}
+
+.Symhead{
+    margin-top: 20px;
+}
+
+.plot3d{
+    width: 100%;
 }

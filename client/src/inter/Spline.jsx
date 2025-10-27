@@ -123,44 +123,42 @@ function Spline() {
 
   };
 
-const handleCalculate = () => {
-  if (!xValue || points.some(p => p.x === '' || p.fx === '')) {
-    alert("⚠️ นายท่านครับ ได้โปรด กรอก ข้อ มูล ให้ ครบ ก่อน นะ ครับ");
-    return;
-  }
-  if (mode == 'Cubic') {
-    alert("⚠️ ขออภัยด้วย ท่านไม่ได้ผิดแต่อย่างใด แต่เราแค่ยังทำไม่เสร็จ");
-    return;
-  }
+  const handleCalculate = () => {
+    if (!xValue || points.some(p => p.x === '' || p.fx === '')) {
+      alert("⚠️ นายท่านครับ ได้โปรด กรอก ข้อ มูล ให้ ครบ ก่อน นะ ครับ");
+      return;
+    }
+    if (mode === 'Cubic' || mode === 'Quadratic'  ) {
+      alert("⚠️ ขออภัยด้วย ท่านไม่ได้ผิดแต่อย่างใด แต่เราแค่ยังทำไม่เสร็จ");
+      return;
+    }
 
-  let x = parseFloat(xValue);
-  let n = parseInt(numPoints);
-  let point = [];
+    let x = parseFloat(xValue);
+    let n = parseInt(numPoints);
+    let point = [];
 
-  // แปลงข้อมูลจุดให้เป็นตัวเลข
-  let initial = points.slice(0, n).map(p => ({
-    x: parseFloat(p.x),
-    fx: parseFloat(p.fx)
-  }));
+    // แปลงข้อมูลจุดให้เป็นตัวเลข
+    let initial = points.slice(0, n).map(p => ({
+      x: parseFloat(p.x),
+      fx: parseFloat(p.fx)
+    }));
 
-  if(mode == 'Linear'){
-    LinearCal(initial , x , n)
-  }
+    if(mode == 'Linear'){
+      LinearCal(initial , x , n)
+    }
 
-  // เตรียมข้อมูลกราฟ
-  point = initial.map(p => ({
-    x: p.x,
-    fx: p.fx
-  }));
+    // เตรียมข้อมูลกราฟ
+    point = initial.map(p => ({
+      x: p.x,
+      fx: p.fx
+    }));
 
 
-  // อัปเดต state ทั้งหมด
-  setplot(point);
-//   setAns(result);
-//   setL(data);
-  setCal(true);
-  PushDataBase();
-};
+    // อัปเดต state ทั้งหมด
+    setplot(point);
+    setCal(true);
+    // PushDataBase();
+  };
 
   return (
 
@@ -288,7 +286,6 @@ const handleCalculate = () => {
             </h2>
 
         </div>
-        
         
         )}
         

@@ -1,10 +1,11 @@
 import React from 'react'
 import { useState } from 'react'
 import { multiply , add , subtract , transpose , pow , det} from "mathjs";
-import Graph from '../component/Graph';
+import Graph from '../component/graph3d';
 import Table from '../component/TableIteration'
 import axios from "axios"; 
 import Nav from './Menu'
+
 import './UI.css'
 
 function Conjugate() {
@@ -23,9 +24,11 @@ function Conjugate() {
   const [Iterations, setIterations] = useState([]);
   const [plotgraph, setpoint] = useState([]);
   const [Old, setOld] = useState([]);
+  const [Sym, setSym] = useState([]);
 
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(true);
+  const [showSym, setShowSym] = useState(false);
 
   function fetchDatabase(){
     // fetch คือขอ data จาก server ( เรียก GET)
@@ -139,9 +142,8 @@ function Conjugate() {
 
   const toMatrix = (arr) => arr.map(v => [v]);
 
-  function check(){
+  function checkPos(){
     let N = Size
-    let a = structuredClone(A);
      for(let i=1;i<=N;i++){
         let temp = []
         for(let j=0;j<i;j++){
@@ -156,21 +158,32 @@ function Conjugate() {
             return false;
         }
     }
+    return true;
+  }
+
+  function isnotSym(){
+    let N = Size
+    let a = structuredClone(A);
     let at = transpose(a)
     for(let i=0;i<N;i++){
         for(let j=0;j<N;j++){
             if(!(a[i][j] === at[i][j])){
                 alert('it not symmethry')
-                return false;    
+                return true;    
             }
         }
     }
-    return true;
+    return false;
+  }
+
+  function newSym(a){
+    let at = transpose(a)
+    return multiply(1/2 ,add(a,at))
   }
 
   function Calculation(){
 
-    if(check() === false) return;
+    if(checkPos() === false) return;
 
     let N = Size
     let data = []
@@ -179,12 +192,16 @@ function Conjugate() {
     let b = structuredClone(B);
     let x = structuredClone(X0);
 
-    
+    if(isnotSym()){
+      setShowSym(true)
+      a = newSym(a)
+      setSym(structuredClone(a))
+    }
+    else setShowSym(false)
 
-
+    // cal the iteration 0 of conjugate
     let R = subtract(multiply(a,x),b)
     let D = multiply(-1,R)
-
     let numerator = multiply(transpose(toMatrix(D)), toMatrix(R))[0][0];            // scalar
     let denominator = multiply(transpose(toMatrix(D)), multiply(a, toMatrix(D)))[0][0]; // scalar
     let lamda = (-1) * numerator / denominator;
@@ -197,6 +214,7 @@ function Conjugate() {
     while(1){
         it++;
 
+        // cal iterations of conjugate
         numerator = multiply(transpose(toMatrix(D)), toMatrix(R))[0][0];            // scalar
         denominator = multiply(transpose(toMatrix(D)), multiply(a, toMatrix(D)))[0][0]; // scalar
         let lamda = (-1) * numerator / denominator;
@@ -207,8 +225,8 @@ function Conjugate() {
 
         let err = Math.sqrt(multiply(transpose(toMatrix(R)), toMatrix(R))[0][0]);
 
+        // Push obj to iterations
         let obj = { Iterations: it };
-
         x.forEach((p, i) => {
             obj['x' + (i + 1)] = p;   // ตั้งชื่อ key แบบไดนามิก
         });
@@ -227,10 +245,8 @@ function Conjugate() {
         if(err < error || it == 100) break;
     }
 
-    console.table(data)
-
     setIterations(data)
-    // PushDataBase()
+    PushDataBase()
   }
 
 
@@ -360,12 +376,30 @@ function Conjugate() {
                   <button className='btn btn-calc' onClick={Cancel}>Cancel</button>
               </center>
             </div>
-          )}
+        )}
+
+        {showSym && (
+          <div className='ndd-container'>
+            <h2 className='Symhead'> Symmetry Matrix's</h2>
+              <div>
+              {Sym.map((p) =>(
+                <div className='Symrows'>
+                  {p.map((q) =>(
+                    <div className='Symelement'>{q}</div>
+                  ))}
+                </div>
+              ))}
+              </div>
+          </div>
+        )}
+
             
             {/* Table of root */}
-         {Iterations.length > 0 && (
+          {Iterations.length > 0 && (
             <Table Iterations ={Iterations}></Table>
         )}
+
+        <Graph></Graph>
 
         </div>
     </>

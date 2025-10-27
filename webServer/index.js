@@ -4,8 +4,14 @@ const bodyParser = require('body-parser')
 const app = express();
 const cors = require('cors')
 const mysql = require('mysql2/promise')
+const swaggerUI = require('swagger-ui-express')
+const swaggerJsdoc = require('swagger-jsdoc')
 
-app.use(bodyParser.json())
+app.use(express.json());
+
+
+
+
 app.use(cors({
     origin: 'http://localhost:5173'
 }));
@@ -163,8 +169,21 @@ const port = 8000
 
 // --------------------------------GET------------------------------------
 
+/**
+ * @swagger
+ * /Bisection:
+ *  get:
+ *      summary : Get Bisection old problems
+ *      responses :
+ *          200:
+ *              description : Success get
+ *          500:
+ *              description : Error get
+ */
+
 // path = GET /Bisection
 app.get('/Bisection' , async (req,res) =>{
+
     console.log('GET Bisection Complete')
     const results = await conn.query('SELECT * FROM root2x where method = "bisection"')
     res.json(results[0])
@@ -942,12 +961,41 @@ app.get('/conjugate' , async (req,res) =>{
             C = []
         }
     }
-    console.log('GET jacobi Complete')
+    console.log('GET conjugate Complete')
     res.json(NewResult)
 })
-
+        
 
 // --------------------------POST----------------------------------
+
+
+/**
+ * @swagger
+ * /root2x:
+ *  post:
+ *      summary : Push (graphical , bisection , falseposition , secant) to db
+ *      requestBody:
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          equation:
+ *                              type : string
+ *                          xr :
+ *                              type : float
+ *                          xl :
+ *                              type : float
+ *                          error :
+ *                              type : float
+ *                          method :
+ *                              type : string
+ *      responses : 
+ *          200:
+ *              description : Success post
+ *          500:
+ *              description : Error post
+ */
 
 // path = POST /root2x (graphical , bisection , false , secant) สำหรับการสร้าง Equation ใหม่บันทึกเข้าไป
 app.post('/root2x' , async(req,res) =>{
@@ -1110,6 +1158,26 @@ app.post('/linearAlgebra' , async(req,res) =>{
         })
     }
 })
+
+const swaggerOptions = {
+    definition : {
+        openapi:'3.0.0',
+        info:{
+            title:'API Doc',
+            version:'1.0.0',
+            description:'api for numerical web document'
+        },
+        servers:[
+            {
+                url: 'http://localhost:8000',
+            },
+        ],
+    },
+    apis:['index.js'],
+}
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions)
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec))
 
 
 // ทำการ run server
