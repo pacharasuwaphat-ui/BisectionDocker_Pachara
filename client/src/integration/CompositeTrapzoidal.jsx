@@ -191,7 +191,7 @@ function CompositeTrapzoidal() {
                         checked={value === items.equation}
                         onChange={(e) => setValue(e.target.value)}
                     />
-                    {items.equation + ", X0 = " + items.x0 + ", X1 = " + items.x1 }
+                    {items.equation + ", X0 = " + items.x0 + ", X1 = " + items.x1 + ", N = " + items.n }
                     </label>
                     </center>
                 ))}

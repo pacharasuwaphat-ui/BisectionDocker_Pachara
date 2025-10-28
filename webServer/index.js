@@ -9,9 +9,6 @@ const swaggerJsdoc = require('swagger-jsdoc')
 
 app.use(express.json());
 
-
-
-
 app.use(cors({
     origin: 'http://localhost:5173'
 }));
@@ -22,11 +19,11 @@ let conn = null
 const initMySQL = async () => {
   try {
     conn = await mysql.createConnection({
-      host: 'localhost',
+      host: 'db',
       user: 'root',
       password: 'root',
       database: 'numerical',
-      port: 8889
+      port: 3306
     });
     console.log("✅ MySQL connected");
 
