@@ -1,98 +1,59 @@
-import { useState } from 'react'
-import { e, evaluate, im } from "mathjs";
-import Graph from '../component/Graph';
-import Table from '../component/TableIteration'
-import axios from "axios"; 
-import Nav from './Menu'
+import React from "react";
+import axios from "axios";
+import BaseRootEquation from "./BaseRootEquation";
 
-function Graphical() {
-  
-  const [value, setValue] = useState("");
-
-  const [Equation, setText] = useState("");
-  const [XL, setXL] = useState("");
-  const [XR, setXR] = useState("");
-  const [Er, seteR] = useState("");
-  const [Iterations, setIterations] = useState([]);
-  const [plotgraph, setpoint] = useState([]);
-  const [Old, setOld] = useState([]);
-
-  const [showOld, setShowOld] = useState(false);
-  const [showNew, setShowNew] = useState(true);
-  
-  function fetchDatabase(){
-    // fetch คือขอ data จาก server ( เรียก GET)
-    try {
-      fetch('http://localhost:8000/Graphical')
-      .then((response) =>{
-        return response.json()
-      })
-      .then((responseData) =>{
-        setOld(responseData)
-      })  
-    } catch (error) {
-      console.error('error message',error.message)
-        res.status(500).json({
-            message: 'something wrong',
-        })
-    }
-    
-  }
-  function Cancel() {
-    setShowOld(false);
-    setShowNew(true);
+class Graphical extends BaseRootEquation {
+  constructor(props) {
+    super(props);
+    this.state = {
+      ...this.state,
+      XL: "",
+      XR: "",
+    };
   }
 
-  function getOldProblem() {
-    setShowOld(true);
-    setShowNew(false);
-    fetchDatabase()
+  async fetchDatabase() {
+    const res = await fetch("http://localhost:8000/Graphical");
+    this.setState({ Old: await res.json() });
   }
 
-  // Post API
-  const PushDataBase = async() =>{
-    try{
-      const data = {
-        equation : Equation,
-        xr : XR,
-        xl : XL,
-        error : Er,
-        method : "graphical"
-      }
-      console.log('submit data', data)
-      const response = await axios.post('http://localhost:8000/root2x', data)
-      console.log('response' , response.data)
-
-    }catch(error){
-      if(error.response){
-        console.log(error.response.data.message)
-      }
-    }
+  async getOldProblem() {
+    this.setState({ showOld: true, showNew: false });
+    await this.fetchDatabase();
   }
 
-
-  function Fx(i){
-    let scope = { x: i}; 
-    return  evaluate(Equation, scope);
+  async PushDataBase() {
+    const { Equation, XL, XR, Er } = this.state;
+    await axios.post("http://localhost:8000/root2x", {
+      equation: Equation,
+      xl: XL,
+      xr: XR,
+      error: Er,
+      method: "graphical",
+    });
   }
 
-  function Oldcal(e){
+  Oldcal(e) {
     e.preventDefault();
-    const selected = Old.find(item => item.equation === value);
+    const selected = this.state.Old.find((item) => item.equation === this.state.value);
     if (selected) {
-      setText(selected.equation);
-      setXL(selected.xl);
-      setXR(selected.xr);
-      seteR(selected.error);
+      this.setState({
+        Equation: selected.equation,
+        XL: selected.xl,
+        XR: selected.xr,
+        Er: selected.error,
+      });
     }
-    Cancel()
+    this.Cancel();
   }
 
-  function Calculation(){
-    if(Equation === "" || XL === "" || XR === "" || Er === "")  {
+  Calculation() {
+    const { Equation, XL, XR, Er } = this.state;
+    if (!Equation || !XL || !XR || !Er) {
       alert("กรุณากรอกข้อมูลให้ครบก่อนคำนวณ");
       return;
     }
+
     let xl = parseFloat(XL);
     let xr = parseFloat(XR);
     let xm = xl;
@@ -100,30 +61,20 @@ function Graphical() {
     let xmo = xm;
     let change = 1.0;
     let data = [];
-    let point = []
+    let point = [];
     let iteration = 1;
 
-    for(xm = xl+change; xm <= xr;xm += change){
-      
-      
-      Error = Math.abs(Fx(xm))
-      // console.log(xm);
-      if(Error <= Er) break;
-      if (xm >= XR && Math.abs(Fx(xm)) > Er) {
-        alert("ช่วงที่คุณกำหนดไม่สามารถหาค่าได้นะแจ๊ะ");
+    for (xm = xl + change; xm <= xr; xm += change) {
+      Error = Math.abs(this.Fx(xm));
+      if (Error <= Er) break;
+      if (xm >= xr && Math.abs(this.Fx(xm)) > Er) {
+        alert("ช่วงที่กำหนดไม่สามารถหาค่าได้");
         return;
       }
-      data.push({
-        iteration: iteration,
-        X: xm,
-        error:Error
-      });
-      point.push({
-        x: xm,
-        fx: Fx(xm)
-      });
+      data.push({ iteration, X: xm, error: Error });
+      point.push({ x: xm, fx: this.Fx(xm) });
       iteration++;
-      if(Fx(xm)*Fx(xmo) < 0){
+      if (this.Fx(xm) * this.Fx(xmo) < 0) {
         xr = xm;
         xl = xmo;
         xm = xl;
@@ -134,102 +85,12 @@ function Graphical() {
     }
 
     point.sort((a, b) => a.x - b.x);
-    setIterations(data)
-    setpoint(point)
-    PushDataBase()
-
+    this.setState({ Iterations: data, plotgraph: point }, this.PushDataBase);
   }
 
-      
-  return (
-    <>
-        <Nav current={'Graphical'}></Nav>
-        <div className="EquationBox">
-
-            <h1>
-            Graphical Method
-            </h1>
-            {showNew && (
-            <div>
-            <div className='Textinput'>
-                <input
-                type= "text"
-                value = {Equation} 
-                onChange={(e) => setText(e.target.value)} // อัพเดท state เมื่อพิมพ์
-                placeholder="input your equation"
-                className="EquationInput"
-                />
-                <input
-                type= "text"
-                value = {XL} 
-                onChange={(e) => setXL(e.target.value)} // อัพเดท state เมื่อพิมพ์
-                placeholder="xL"
-                className="X"
-                />
-                <input
-                type= "text"
-                value = {XR} 
-                onChange={(e) => setXR(e.target.value)} // อัพเดท state เมื่อพิมพ์
-                placeholder="xR"
-                className="X"
-                />
-                <input
-                type= "text"
-                value = {Er} 
-                onChange={(e) => seteR(e.target.value)} // อัพเดท state เมื่อพิมพ์
-                placeholder="Error"
-                className="X"
-                />
-            </div>
-            <center>
-                <button onClick={() => Calculation(false)}>Calculate</button>
-            </center>
-            <center>
-                <button onClick={getOldProblem}>Get Old Problem</button>
-            </center>
-            </div>
-            )}
-
-            {showOld && (
-            <div>
-            <div className='Textinput'>
-                <form onSubmit={Oldcal}>
-                {Old.map((items, index) => (
-                    <center  key={index} className='oldSelect'>
-                    <label>
-                    <input className='oldSelect'
-                        type="radio"
-                        value={items.equation}
-                        checked={value === items.equation}
-                        onChange={(e) => setValue(e.target.value)}
-                    />
-                    {items.equation + ", Xl = " + items.xl + ", Xr = " + items.xr + ", Error = " + items.error + ", "}
-                    </label>
-                    </center>
-                ))}
-                
-                <center>
-                    <button type="submit">Select</button>
-                </center>
-                </form>
-            </div>
-            <center>
-                <button onClick={Cancel}>Cancel</button>
-            </center>
-            </div>
-            )}
-            {/* Table of root */}
-        {Iterations.length > 0 && Equation && (
-            <Table Iterations ={Iterations}></Table>
-        )}
-
-        {plotgraph.length > 0 && Equation && (
-            <Graph  Points={plotgraph} />
-        )}
-
-        </div>
-    </>
-  )
+  render() {
+    return this.renderBaseLayout("Graphical");
+  }
 }
 
-export default Graphical
+export default Graphical;

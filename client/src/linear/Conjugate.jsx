@@ -399,7 +399,7 @@ function Conjugate() {
             <Table Iterations ={Iterations}></Table>
         )}
 
-        <Graph></Graph>
+        {/* <Graph></Graph> */}
 
         </div>
     </>
